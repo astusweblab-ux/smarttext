@@ -17,6 +17,7 @@ Created by ASTUS LAB.
 - Custom prompt templates (create, run, delete)
 - Export history to `CSV` / `JSON`
 - Configurable visible action buttons
+- Multilingual UI (Auto / RU / EN / ES / DE / FR / IT / PT / JA / UK / PL) for side panel, floating panel, and context menu
 - Voice input via microphone
 - File upload and parsing for `TXT` / `MD` / `DOCX` / `PDF`
 
@@ -43,6 +44,19 @@ Created by ASTUS LAB.
 - Action button selection for floating panel and quick actions
 - Dedicated `🌐 Языки` tab for translations
 - Voice dictation and local document import
+- Interface language selector in settings (`Auto`, `RU`, `EN`, `ES`, `DE`, `FR`, `IT`, `PT`, `JA`, `UK`, `PL`)
+
+## Microphone access (`not-allowed`)
+
+If you see `Ошибка микрофона: not-allowed` / `Microphone error: not-allowed`, allow microphone access for SmartText:
+
+1. In SmartText click `🎤 Voice` once to trigger microphone permission prompt
+2. Approve microphone access in the Chrome prompt
+3. Click `🎤 Voice` again to start dictation
+4. If permission was previously blocked: `chrome://extensions` → `SmartText` → `Details` → `Site settings`
+5. Set `Microphone` to `Allow`
+6. Reload extension and click `🎤 Voice` again
+
 
 ## License
 

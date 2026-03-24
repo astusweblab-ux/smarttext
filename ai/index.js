@@ -58,22 +58,26 @@ function detectOutputLanguage() {
   return 'en';
 }
 
+function normalizeOutputLanguage(language) {
+  return SUPPORTED_OUTPUT_LANGS.includes(language) ? language : 'en';
+}
+
 function getLanguageOptionVariants(preferredLanguage = detectOutputLanguage()) {
-  const preferred = SUPPORTED_OUTPUT_LANGS.includes(preferredLanguage) ? preferredLanguage : 'en';
+  const preferred = normalizeOutputLanguage(preferredLanguage);
   const fallback = 'en';
   const order = preferred === fallback ? [fallback] : [preferred, fallback];
 
   const variants = [];
   for (const lang of order) {
     if (!SUPPORTED_OUTPUT_LANGS.includes(lang)) continue;
-    variants.push({ expectedOutputs: [{ type: 'text', languages: [lang] }] });
-    variants.push({ expectedOutputLanguages: [lang] });
+    // Chrome 127+ требует явный outputLanguage.
+    variants.push({ outputLanguage: lang, expectedOutputs: [{ type: 'text', languages: [lang] }] });
+    variants.push({ outputLanguage: lang, expectedOutputLanguages: [lang] });
     variants.push({ outputLanguage: lang });
   }
   if (!variants.length) {
-    variants.push({ expectedOutputs: [{ type: 'text', languages: ['en'] }] });
-    variants.push({ expectedOutputLanguages: ['en'] });
-    variants.push({ outputLanguage: 'en' });
+    variants.push({ outputLanguage: 'en', expectedOutputs: [{ type: 'text', languages: ['en'] }] });
+    variants.push({ outputLanguage: 'en', expectedOutputLanguages: ['en'] });
   }
   return variants;
 }
@@ -112,7 +116,7 @@ function destroySession() {
 
 async function getAvailability(adapter, preferredLanguage) {
   if (!adapter?.availability) return 'unknown';
-  const variants = [...getLanguageOptionVariants(preferredLanguage), {}];
+  const variants = getLanguageOptionVariants(preferredLanguage);
   for (const options of variants) {
     try {
       return normalizeAvailability(await adapter.availability(options));
@@ -129,11 +133,6 @@ async function createLocalSession(adapter, temperature, preferredLanguage) {
     optionsList.push({ ...langOptions, systemPrompt: SYSTEM_PROMPT, temperature });
     optionsList.push({ ...langOptions, systemPrompt: SYSTEM_PROMPT });
   }
-
-  // Fallback для старых реализаций, где язык вывода не обязателен.
-  optionsList.push({ systemPrompt: SYSTEM_PROMPT, temperature });
-  optionsList.push({ systemPrompt: SYSTEM_PROMPT });
-  optionsList.push({});
 
   let lastError = null;
   for (const options of optionsList) {
@@ -153,7 +152,8 @@ function getPreferredOutputLanguageForAction(action) {
 }
 
 async function ensureSession(temperature, preferredLanguage) {
-  if (session && sessionTemperature === temperature && sessionOutputLanguage === preferredLanguage) return session;
+  const safeLanguage = normalizeOutputLanguage(preferredLanguage);
+  if (session && sessionTemperature === temperature && sessionOutputLanguage === safeLanguage) return session;
 
   if (sessionInitPromise) return sessionInitPromise;
 
@@ -165,16 +165,16 @@ async function ensureSession(temperature, preferredLanguage) {
       );
     }
 
-    const availability = await getAvailability(promptApi, preferredLanguage);
+    const availability = await getAvailability(promptApi, safeLanguage);
     if (availability === 'unavailable') {
       throw new Error('Локальная модель недоступна на этом устройстве.');
     }
 
-    if (!session || sessionTemperature !== temperature || sessionOutputLanguage !== preferredLanguage) {
+    if (!session || sessionTemperature !== temperature || sessionOutputLanguage !== safeLanguage) {
       destroySession();
-      session = await createLocalSession(promptApi, temperature, preferredLanguage);
+      session = await createLocalSession(promptApi, temperature, safeLanguage);
       sessionTemperature = temperature;
-      sessionOutputLanguage = preferredLanguage;
+      sessionOutputLanguage = safeLanguage;
     }
 
     return session;
@@ -187,9 +187,11 @@ async function ensureSession(temperature, preferredLanguage) {
   }
 }
 
-async function generateText(modelSession, prompt, onChunk) {
+async function generateText(modelSession, prompt, outputLanguage, onChunk) {
+  const requestOptions = { outputLanguage: normalizeOutputLanguage(outputLanguage) };
+
   if (typeof modelSession.promptStreaming === 'function') {
-    const stream = await modelSession.promptStreaming(prompt);
+    const stream = await modelSession.promptStreaming(prompt, requestOptions);
     let fullText = '';
     for await (const chunk of stream) {
       const chunkText = toText(chunk);
@@ -205,7 +207,7 @@ async function generateText(modelSession, prompt, onChunk) {
   }
 
   if (typeof modelSession.prompt === 'function') {
-    const out = await modelSession.prompt(prompt);
+    const out = await modelSession.prompt(prompt, requestOptions);
     const text = cleanText(toText(out));
     onChunk?.(text);
     return text;
@@ -270,7 +272,7 @@ export async function runAction(action, text, instruction = '', onChunk) {
 
   const promptBase = action === 'custom' ? PROMPTS.custom(text, instruction) : promptFn(text);
   const prompt = buildPrompt(promptBase, settings.maxTokens);
-  const preferredLanguage = getPreferredOutputLanguageForAction(action);
+  const preferredLanguage = normalizeOutputLanguage(getPreferredOutputLanguageForAction(action));
 
   let modelSession;
   try {
@@ -283,12 +285,12 @@ export async function runAction(action, text, instruction = '', onChunk) {
   }
 
   try {
-    return await generateText(modelSession, prompt, onChunk);
+    return await generateText(modelSession, prompt, preferredLanguage, onChunk);
   } catch (err) {
     // Если сессия была сброшена/устарела — пересоздаём один раз и повторяем.
     destroySession();
     const retrySession = await ensureSession(settings.temperature, preferredLanguage);
-    return generateText(retrySession, prompt, onChunk);
+    return generateText(retrySession, prompt, preferredLanguage, onChunk);
   }
 }
 

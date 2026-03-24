@@ -141,6 +141,14 @@ body {
 }
 .input-tool-status.ok { color: var(--green); }
 .input-tool-status.error { color: var(--red); }
+.input-tool-help {
+  width: 100%;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+.input-tool-help.error { color: var(--red); }
 .mini-btn.voice-active {
   color: var(--green);
   border-color: rgba(52, 211, 153, 0.45);

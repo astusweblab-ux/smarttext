@@ -3,23 +3,206 @@
 // Плавающая панель над выделением + горячие клавиши
 
 const ALL_ACTIONS = [
-  { id: 'fix',     label: 'Исправить',    icon: '✨' },
-  { id: 'shorter', label: 'Короче',       icon: '📝' },
-  { id: 'longer',  label: 'Длиннее',      icon: '📖' },
-  { id: 'polite',  label: 'Вежливее',     icon: '😊' },
-  { id: 'to_ru',   label: 'На русский',   icon: '🌐' },
-  { id: 'to_en',   label: 'На English',   icon: '🌐' },
-  { id: 'to_es',   label: 'На Spanish',   icon: '🌐' },
-  { id: 'to_de',   label: 'На German',    icon: '🌐' },
-  { id: 'to_fr',   label: 'На French',    icon: '🌐' },
-  { id: 'to_it',   label: 'На Italian',   icon: '🌐' },
-  { id: 'to_pt',   label: 'На Portuguese', icon: '🌐' },
-  { id: 'to_ja',   label: 'На Japanese',  icon: '🌐' },
-  { id: 'to_uk',   label: 'На украинский', icon: '🌐' },
-  { id: 'to_pl',   label: 'На польский',  icon: '🌐' },
-  { id: 'formal',  label: 'Формально',    icon: '💼' },
-  { id: 'casual',  label: 'Просто',       icon: '💬' },
+  { id: 'fix',     icon: '✨' },
+  { id: 'shorter', icon: '📝' },
+  { id: 'longer',  icon: '📖' },
+  { id: 'polite',  icon: '😊' },
+  { id: 'to_ru',   icon: '🌐' },
+  { id: 'to_en',   icon: '🌐' },
+  { id: 'to_es',   icon: '🌐' },
+  { id: 'to_de',   icon: '🌐' },
+  { id: 'to_fr',   icon: '🌐' },
+  { id: 'to_it',   icon: '🌐' },
+  { id: 'to_pt',   icon: '🌐' },
+  { id: 'to_ja',   icon: '🌐' },
+  { id: 'to_uk',   icon: '🌐' },
+  { id: 'to_pl',   icon: '🌐' },
+  { id: 'formal',  icon: '💼' },
+  { id: 'casual',  icon: '💬' },
 ];
+
+const ACTION_LABELS = {
+  ru: {
+    fix: 'Исправить',
+    shorter: 'Короче',
+    longer: 'Длиннее',
+    polite: 'Вежливее',
+    to_ru: 'На русский',
+    to_en: 'На английский',
+    to_es: 'На испанский',
+    to_de: 'На немецкий',
+    to_fr: 'На французский',
+    to_it: 'На итальянский',
+    to_pt: 'На португальский',
+    to_ja: 'На японский',
+    to_uk: 'На украинский',
+    to_pl: 'На польский',
+    formal: 'Формально',
+    casual: 'Просто',
+  },
+  en: {
+    fix: 'Fix',
+    shorter: 'Shorter',
+    longer: 'Longer',
+    polite: 'Polite',
+    to_ru: 'To Russian',
+    to_en: 'To English',
+    to_es: 'To Spanish',
+    to_de: 'To German',
+    to_fr: 'To French',
+    to_it: 'To Italian',
+    to_pt: 'To Portuguese',
+    to_ja: 'To Japanese',
+    to_uk: 'To Ukrainian',
+    to_pl: 'To Polish',
+    formal: 'Formal',
+    casual: 'Casual',
+  },
+  es: {
+    fix: 'Corregir',
+    shorter: 'Más corto',
+    longer: 'Más largo',
+    polite: 'Más cortés',
+    to_ru: 'A ruso',
+    to_en: 'A inglés',
+    to_es: 'A español',
+    to_de: 'A alemán',
+    to_fr: 'A francés',
+    to_it: 'A italiano',
+    to_pt: 'A portugués',
+    to_ja: 'A japonés',
+    to_uk: 'A ucraniano',
+    to_pl: 'A polaco',
+    formal: 'Formal',
+    casual: 'Casual',
+  },
+  de: {
+    fix: 'Korrigieren',
+    shorter: 'Kürzer',
+    longer: 'Länger',
+    polite: 'Höflicher',
+    to_ru: 'Auf Russisch',
+    to_en: 'Auf Englisch',
+    to_es: 'Auf Spanisch',
+    to_de: 'Auf Deutsch',
+    to_fr: 'Auf Französisch',
+    to_it: 'Auf Italienisch',
+    to_pt: 'Auf Portugiesisch',
+    to_ja: 'Auf Japanisch',
+    to_uk: 'Auf Ukrainisch',
+    to_pl: 'Auf Polnisch',
+    formal: 'Formell',
+    casual: 'Locker',
+  },
+  fr: {
+    fix: 'Corriger',
+    shorter: 'Plus court',
+    longer: 'Plus long',
+    polite: 'Plus poli',
+    to_ru: 'Vers russe',
+    to_en: 'Vers anglais',
+    to_es: 'Vers espagnol',
+    to_de: 'Vers allemand',
+    to_fr: 'Vers français',
+    to_it: 'Vers italien',
+    to_pt: 'Vers portugais',
+    to_ja: 'Vers japonais',
+    to_uk: 'Vers ukrainien',
+    to_pl: 'Vers polonais',
+    formal: 'Formel',
+    casual: 'Décontracté',
+  },
+  it: {
+    fix: 'Correggi',
+    shorter: 'Più breve',
+    longer: 'Più lungo',
+    polite: 'Più cortese',
+    to_ru: 'In russo',
+    to_en: 'In inglese',
+    to_es: 'In spagnolo',
+    to_de: 'In tedesco',
+    to_fr: 'In francese',
+    to_it: 'In italiano',
+    to_pt: 'In portoghese',
+    to_ja: 'In giapponese',
+    to_uk: 'In ucraino',
+    to_pl: 'In polacco',
+    formal: 'Formale',
+    casual: 'Informale',
+  },
+  pt: {
+    fix: 'Corrigir',
+    shorter: 'Mais curto',
+    longer: 'Mais longo',
+    polite: 'Mais educado',
+    to_ru: 'Para russo',
+    to_en: 'Para inglês',
+    to_es: 'Para espanhol',
+    to_de: 'Para alemão',
+    to_fr: 'Para francês',
+    to_it: 'Para italiano',
+    to_pt: 'Para português',
+    to_ja: 'Para japonês',
+    to_uk: 'Para ucraniano',
+    to_pl: 'Para polonês',
+    formal: 'Formal',
+    casual: 'Casual',
+  },
+  ja: {
+    fix: '修正',
+    shorter: '短く',
+    longer: '長く',
+    polite: '丁寧に',
+    to_ru: 'ロシア語へ',
+    to_en: '英語へ',
+    to_es: 'スペイン語へ',
+    to_de: 'ドイツ語へ',
+    to_fr: 'フランス語へ',
+    to_it: 'イタリア語へ',
+    to_pt: 'ポルトガル語へ',
+    to_ja: '日本語へ',
+    to_uk: 'ウクライナ語へ',
+    to_pl: 'ポーランド語へ',
+    formal: 'フォーマル',
+    casual: 'カジュアル',
+  },
+  uk: {
+    fix: 'Виправити',
+    shorter: 'Коротше',
+    longer: 'Довше',
+    polite: 'Ввічливіше',
+    to_ru: 'На російську',
+    to_en: 'На англійську',
+    to_es: 'На іспанську',
+    to_de: 'На німецьку',
+    to_fr: 'На французьку',
+    to_it: 'На італійську',
+    to_pt: 'На португальську',
+    to_ja: 'На японську',
+    to_uk: 'На українську',
+    to_pl: 'На польську',
+    formal: 'Формально',
+    casual: 'Просто',
+  },
+  pl: {
+    fix: 'Popraw',
+    shorter: 'Krócej',
+    longer: 'Dłużej',
+    polite: 'Uprzejmiej',
+    to_ru: 'Na rosyjski',
+    to_en: 'Na angielski',
+    to_es: 'Na hiszpański',
+    to_de: 'Na niemiecki',
+    to_fr: 'Na francuski',
+    to_it: 'Na włoski',
+    to_pt: 'Na portugalski',
+    to_ja: 'Na japoński',
+    to_uk: 'Na ukraiński',
+    to_pl: 'Na polski',
+    formal: 'Formalnie',
+    casual: 'Swobodnie',
+  }
+};
 
 const ACTION_MAP = new Map(ALL_ACTIONS.map((a) => [a.id, a]));
 const DEFAULT_ENABLED_ACTIONS = ['fix', 'shorter', 'longer', 'polite', 'to_ru', 'to_en', 'formal', 'casual'];
@@ -35,12 +218,28 @@ const HOTKEY_MAP = {
 const panelSettings = {
   showPanel: true,
   panelDelay: 300,
+  uiLanguage: 'auto',
   enabledActions: [...DEFAULT_ENABLED_ACTIONS]
 };
 
 let panel = null;
 let showTimer = null;
 let lastTarget = null;
+let uiLang = 'ru';
+const SUPPORTED_UI_LANGS = ['ru', 'en', 'es', 'de', 'fr', 'it', 'pt', 'ja', 'uk', 'pl'];
+
+function resolveUiLanguage(configValue) {
+  if (SUPPORTED_UI_LANGS.includes(configValue)) return configValue;
+  const browserLang = String(globalThis.navigator?.language || '').toLowerCase();
+  for (const lang of SUPPORTED_UI_LANGS) {
+    if (browserLang.startsWith(`${lang}-`) || browserLang === lang) return lang;
+  }
+  return 'en';
+}
+
+function getActionLabel(actionId) {
+  return ACTION_LABELS[uiLang]?.[actionId] || ACTION_LABELS.en[actionId] || actionId;
+}
 
 function normalizeEnabledActions(list) {
   const source = Array.isArray(list) ? list : DEFAULT_ENABLED_ACTIONS;
@@ -59,11 +258,14 @@ async function loadPanelSettings() {
   const s = await chrome.storage.sync.get({
     showPanel: true,
     panelDelay: 300,
+    uiLanguage: 'auto',
     enabledActions: DEFAULT_ENABLED_ACTIONS
   });
 
   panelSettings.showPanel = !!s.showPanel;
   panelSettings.panelDelay = Math.min(1000, Math.max(100, Number(s.panelDelay) || 300));
+  panelSettings.uiLanguage = s.uiLanguage || 'auto';
+  uiLang = resolveUiLanguage(panelSettings.uiLanguage);
   panelSettings.enabledActions = normalizeEnabledActions(s.enabledActions);
 
   if (panel) createPanel();
@@ -79,7 +281,10 @@ function createPanel() {
     <div class="st-inner">
       <div class="st-logo">✦ SmartText</div>
       <div class="st-actions">
-        ${actions.map((a) => `<button class="st-btn" data-action="${a.id}" title="${a.label}">${a.icon} ${a.label}</button>`).join('')}
+        ${actions.map((a) => {
+          const label = getActionLabel(a.id);
+          return `<button class="st-btn" data-action="${a.id}" title="${label}">${a.icon} ${label}</button>`;
+        }).join('')}
       </div>
     </div>
   `;
@@ -226,7 +431,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== 'sync') return;
-  if (changes.showPanel || changes.panelDelay || changes.enabledActions) {
+  if (changes.showPanel || changes.panelDelay || changes.enabledActions || changes.uiLanguage) {
     loadPanelSettings().catch(() => {});
   }
 });
