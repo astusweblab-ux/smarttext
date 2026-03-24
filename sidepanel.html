@@ -51,18 +51,21 @@
         <div class="input-section">
           <div class="input-label">ТЕКСТ ДЛЯ ОБРАБОТКИ</div>
           <textarea id="inputText" class="text-area" placeholder="Вставьте или введите текст здесь...&#10;&#10;Или выделите текст на любой странице и нажмите кнопку действия в плавающей панели." rows="6"></textarea>
+          <div class="hint-note">💡 Подсказка: можно не вставлять текст вручную — просто выделите его на любой странице и запустите действие через панель SmartText.</div>
         </div>
 
         <!-- Action buttons -->
         <div class="actions-grid" id="actionsGrid"></div>
+        <div class="hint-note">⌨ Быстрый старт: используйте горячие клавиши `Ctrl+Shift+G/S/L/P/R/E` для самых частых действий.</div>
 
         <!-- Custom prompt -->
         <div class="custom-section">
           <div class="input-label">ПРОИЗВОЛЬНЫЙ ЗАПРОС</div>
           <div class="custom-row">
             <input type="text" id="customPrompt" class="custom-input" placeholder="Например: сделай текст в стиле Шекспира..."/>
-            <button class="custom-btn" id="customRunBtn">→</button>
+            <button class="custom-btn" id="customRunBtn" title="Применить произвольную инструкцию к тексту">→</button>
           </div>
+          <div class="hint-note">💬 Пример запроса: «Сделай текст официальным, но коротким и с чётким призывом к действию».</div>
         </div>
 
         <!-- Templates -->
@@ -73,8 +76,9 @@
           <div class="template-form">
             <input type="text" id="templateNameInput" class="custom-input" placeholder="Название шаблона (например: HR ответ)">
             <textarea id="templatePromptInput" class="template-prompt-input" rows="2" placeholder="Текст шаблона. Например: Перепиши в формальном деловом стиле и добавь чёткий CTA."></textarea>
-            <button class="custom-btn template-add-btn" id="addTemplateBtn">+ Добавить шаблон</button>
+            <button class="custom-btn template-add-btn" id="addTemplateBtn" title="Сохранить шаблон для повторного использования">+ Добавить шаблон</button>
           </div>
+          <div class="hint-note">📋 Шаблоны удобны для повторяющихся задач: поддержка, продажи, HR-ответы, отчёты и т.д.</div>
           <div class="templates-list" id="templatesList">
             <div class="empty-state">Шаблонов пока нет</div>
           </div>
@@ -85,9 +89,9 @@
           <div class="result-header">
             <div class="input-label">РЕЗУЛЬТАТ</div>
             <div class="result-actions">
-              <button class="mini-btn" id="copyResultBtn">📋 Копировать</button>
-              <button class="mini-btn" id="insertResultBtn">↩ Вставить</button>
-              <button class="mini-btn danger" id="clearResultBtn">✕</button>
+              <button class="mini-btn" id="copyResultBtn" title="Скопировать результат в буфер обмена">📋 Копировать</button>
+              <button class="mini-btn" id="insertResultBtn" title="Вставить результат в текущее активное поле на странице">↩ Вставить</button>
+              <button class="mini-btn danger" id="clearResultBtn" title="Очистить текущий результат">✕</button>
             </div>
           </div>
           <div class="result-text" id="resultText"></div>
@@ -100,16 +104,18 @@
       <!-- TAB: LANGUAGES -->
       <div class="tab-content" id="tab-languages">
         <div class="input-label">ПЕРЕВОД НА ДРУГИЕ ЯЗЫКИ</div>
+        <div class="hint-note">🌐 Выберите язык назначения. Для перевода достаточно ввести текст в поле на вкладке «Действия» и нажать нужную кнопку здесь.</div>
         <div class="actions-grid" id="languagesGrid"></div>
       </div>
 
       <!-- TAB: HISTORY -->
       <div class="tab-content" id="tab-history">
         <div class="tab-toolbar">
-          <button class="mini-btn" id="exportJsonBtn">⬇ JSON</button>
-          <button class="mini-btn" id="exportCsvBtn">⬇ CSV</button>
-          <button class="mini-btn danger" id="clearHistoryBtn">🗑 Очистить историю</button>
+          <button class="mini-btn" id="exportJsonBtn" title="Экспортировать историю в JSON">⬇ JSON</button>
+          <button class="mini-btn" id="exportCsvBtn" title="Экспортировать историю в CSV">⬇ CSV</button>
+          <button class="mini-btn danger" id="clearHistoryBtn" title="Удалить всю историю изменений">🗑 Очистить историю</button>
         </div>
+        <div class="hint-note">🕒 История помогает быстро вернуться к прошлым версиям текста и повторно использовать удачные результаты.</div>
         <div class="history-list" id="historyList">
           <div class="empty-state">История пуста</div>
         </div>
@@ -117,6 +123,7 @@
 
       <!-- TAB: STATS -->
       <div class="tab-content" id="tab-stats">
+        <div class="hint-note">📊 Здесь показывается активность по действиям, количество обработанных символов и ориентировочная экономия времени.</div>
         <div class="stats-grid" id="statsGrid">
           <div class="stat-card">
             <div class="stat-val" id="statTotal">0</div>
@@ -157,15 +164,16 @@
             </div>
             <div class="setting-row">
               <div class="setting-label">Предзагрузка модели</div>
-              <label class="toggle"><input type="checkbox" id="settingPreload" checked><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="settingPreload" checked title="Подготовить модель заранее для более быстрого первого ответа"><span class="slider"></span></label>
             </div>
+            <div class="setting-note">💡 Включите предзагрузку, если хотите уменьшить задержку первого запуска.</div>
           </div>
 
           <div class="settings-group">
             <div class="settings-group-title">ПЛАВАЮЩАЯ ПАНЕЛЬ</div>
             <div class="setting-row">
               <div class="setting-label">Включить панель</div>
-              <label class="toggle"><input type="checkbox" id="settingPanel" checked><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="settingPanel" checked title="Показывать плавающую панель при выделении текста"><span class="slider"></span></label>
             </div>
             <div class="setting-row">
               <div class="setting-label">Задержка <span class="setting-val" id="delayVal">300</span> мс</div>
@@ -175,22 +183,24 @@
               <div class="setting-label">Кнопки в панели</div>
               <div class="actions-toggle-list" id="actionsToggleList"></div>
             </div>
+            <div class="setting-note">💡 Если панель мешает, отключите её и используйте контекстное меню или вкладки в боковой панели.</div>
           </div>
 
           <div class="settings-group">
             <div class="settings-group-title">ПРИВАТНОСТЬ</div>
             <div class="setting-row">
               <div class="setting-label">Сохранять историю</div>
-              <label class="toggle"><input type="checkbox" id="settingHistory" checked><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="settingHistory" checked title="Сохранять результаты изменений локально"><span class="slider"></span></label>
             </div>
             <div class="setting-row">
               <div class="setting-label">Показывать уведомления</div>
-              <label class="toggle"><input type="checkbox" id="settingNotify" checked><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="settingNotify" checked title="Показывать уведомление о завершении обработки"><span class="slider"></span></label>
             </div>
             <div class="setting-row">
               <div class="setting-label">Синхронизировать историю между устройствами</div>
-              <label class="toggle"><input type="checkbox" id="settingSyncHistory"><span class="slider"></span></label>
+              <label class="toggle"><input type="checkbox" id="settingSyncHistory" title="Синхронизировать компактную историю через аккаунт Chrome"><span class="slider"></span></label>
             </div>
+            <div class="setting-note">🔒 Синхронизация использует `chrome.storage.sync` и хранит укороченные записи истории.</div>
           </div>
 
           <div class="settings-group">
@@ -202,7 +212,7 @@
 
         </div>
         <div class="settings-footer">
-          <button class="save-btn" id="saveSettingsBtn">Сохранить настройки</button>
+          <button class="save-btn" id="saveSettingsBtn" title="Применить и сохранить все изменения настроек">Сохранить настройки</button>
         </div>
       </div>
 

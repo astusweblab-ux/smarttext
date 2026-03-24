@@ -7,6 +7,24 @@ const ALL_ACTION_IDS = Object.keys(ACTION_META);
 const LANGUAGE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => id.startsWith('to_'));
 const CORE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => !id.startsWith('to_'));
 const DEFAULT_ENABLED_ACTIONS = ['fix', 'shorter', 'longer', 'polite', 'to_ru', 'to_en', 'formal', 'casual'];
+const ACTION_HINTS = {
+  fix: 'Исправляет орфографию, грамматику и пунктуацию',
+  shorter: 'Сжимает текст и оставляет главное',
+  longer: 'Раскрывает мысль и добавляет детали',
+  polite: 'Делает формулировки более вежливыми',
+  to_ru: 'Перевод на русский язык',
+  to_en: 'Перевод на английский язык',
+  to_es: 'Перевод на испанский язык',
+  to_de: 'Перевод на немецкий язык',
+  to_fr: 'Перевод на французский язык',
+  to_it: 'Перевод на итальянский язык',
+  to_pt: 'Перевод на португальский язык',
+  to_ja: 'Перевод на японский язык',
+  to_uk: 'Перевод на украинский язык',
+  to_pl: 'Перевод на польский язык',
+  formal: 'Преобразует в официальный деловой стиль',
+  casual: 'Преобразует в более разговорный стиль',
+};
 const DEFAULT_SETTINGS = {
   model: 'chrome-prompt-api',
   temperature: 0.7,
@@ -108,11 +126,14 @@ function readCheckedActionsFromSettings() {
 function actionButtonHtml(actionId) {
   const meta = ACTION_META[actionId];
   if (!meta) return '';
+  const hintText = ACTION_HINTS[actionId] || '';
+  const tailHint = meta.shortcut || hintText;
+  const title = [meta.label || actionId, hintText].filter(Boolean).join(' — ');
   return `
-    <button class="action-btn" data-action="${actionId}">
+    <button class="action-btn" data-action="${actionId}" title="${escAttr(title)}">
       <span class="action-icon">${meta.icon || '✦'}</span>
       <span class="action-label">${escHtml(meta.label || actionId)}</span>
-      <span class="action-hint">${escHtml(meta.shortcut || '')}</span>
+      <span class="action-hint">${escHtml(tailHint || '')}</span>
     </button>
   `;
 }
@@ -226,8 +247,8 @@ function renderTemplates() {
       <div class="template-name">${escHtml(tpl.name)}</div>
       <div class="template-prompt">${escHtml(tpl.prompt)}</div>
       <div class="template-actions">
-        <button class="mini-btn t-run" data-id="${escAttr(tpl.id)}">▶ Применить</button>
-        <button class="mini-btn danger t-del" data-id="${escAttr(tpl.id)}">Удалить</button>
+        <button class="mini-btn t-run" data-id="${escAttr(tpl.id)}" title="Запустить этот шаблон для текущего текста">▶ Применить</button>
+        <button class="mini-btn danger t-del" data-id="${escAttr(tpl.id)}" title="Удалить шаблон">Удалить</button>
       </div>
     </div>
   `).join('');

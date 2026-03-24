@@ -17,6 +17,7 @@ Created by ASTUS LAB.
 - Custom prompt templates (create, run, delete)
 - Export history to `CSV` / `JSON`
 - Configurable visible action buttons
+- Inline hints and tooltips across tabs and controls
 
 ## Load in Chrome
 
