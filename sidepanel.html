@@ -24,6 +24,7 @@
         </div>
       </div>
       <div class="header-right">
+        <button class="help-btn" id="helpBtn" title="Открыть инструкцию">ℹ Инструкция</button>
         <div class="status-pill" id="statusPill">
           <span class="status-dot" id="statusDot"></span>
           <span id="statusLabel">Загрузка...</span>
@@ -211,6 +212,53 @@
       </div>
 
     </div><!-- /main-app -->
+
+    <!-- HELP / INSTRUCTIONS -->
+    <div class="help-modal" id="helpModal" aria-hidden="true">
+      <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="help-head">
+          <div>
+            <div class="help-kicker">SMARTTEXT GUIDE</div>
+            <h2 class="help-title" id="helpTitle">Как пользоваться SmartText</h2>
+          </div>
+          <button class="mini-btn danger" id="helpCloseBtn">✕</button>
+        </div>
+
+        <div class="help-body">
+          <div class="help-section">
+            <div class="help-label">Для чего это расширение</div>
+            <p>SmartText помогает быстро редактировать текст прямо в браузере: исправлять ошибки, сокращать, расширять, менять тон и переводить. Все операции выполняются локально через Chrome Built-in AI без API-ключей.</p>
+          </div>
+
+          <div class="help-section">
+            <div class="help-label">Что умеет SmartText</div>
+            <ul class="help-list">
+              <li>Исправить грамматику и стиль</li>
+              <li>Сделать текст короче или длиннее</li>
+              <li>Сделать текст более вежливым</li>
+              <li>Переводить RU ⇄ EN</li>
+              <li>Менять стиль: формальный или разговорный</li>
+              <li>Выполнять произвольные инструкции в поле «Произвольный запрос»</li>
+            </ul>
+          </div>
+
+          <div class="help-section">
+            <div class="help-label">Как использовать</div>
+            <ul class="help-list">
+              <li>Выделите текст на странице и нажмите кнопку в плавающей панели SmartText.</li>
+              <li>Или выделите текст, откройте правый клик → SmartText → выберите действие.</li>
+              <li>Или вставьте текст в это окно и нажмите одну из кнопок действий.</li>
+              <li>Готовый результат можно скопировать или вставить обратно в активное поле.</li>
+            </ul>
+          </div>
+
+          <div class="help-section">
+            <div class="help-label">Горячие клавиши</div>
+            <div class="shortcut-list" id="helpShortcutsList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div><!-- /app -->
 
   <script type="module" src="sidepanel.js"></script>

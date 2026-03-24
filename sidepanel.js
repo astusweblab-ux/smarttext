@@ -26,11 +26,44 @@ const customRunBtn  = document.getElementById('customRunBtn');
 const historyList   = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+const helpBtn       = document.getElementById('helpBtn');
+const helpModal     = document.getElementById('helpModal');
+const helpCloseBtn  = document.getElementById('helpCloseBtn');
+const helpShortcutsList = document.getElementById('helpShortcutsList');
 
 // ---- STATUS ----
 function setStatus(state, label) {
   statusDot.className = 'status-dot ' + state;
   statusLabel.textContent = label;
+}
+
+function renderHelpShortcuts() {
+  if (!helpShortcutsList) return;
+  const items = Object.entries(ACTION_META)
+    .filter(([, meta]) => meta.shortcut)
+    .map(([id, meta]) => ({ id, label: meta.label, shortcut: meta.shortcut }));
+
+  items.push({ id: 'esc', label: 'Закрыть плавающую панель', shortcut: 'Esc' });
+
+  helpShortcutsList.innerHTML = items.map((item) => `
+    <div class="shortcut-row">
+      <div class="shortcut-name">${escHtml(item.label)}</div>
+      <div class="shortcut-key">${escHtml(item.shortcut)}</div>
+    </div>
+  `).join('');
+}
+
+function openHelpModal() {
+  if (!helpModal) return;
+  renderHelpShortcuts();
+  helpModal.classList.add('open');
+  helpModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeHelpModal() {
+  if (!helpModal) return;
+  helpModal.classList.remove('open');
+  helpModal.setAttribute('aria-hidden', 'true');
 }
 
 // ---- TABS ----
@@ -44,6 +77,17 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.tab === 'stats') renderStats();
     if (tab.dataset.tab === 'settings') loadSettings();
   });
+});
+
+helpBtn?.addEventListener('click', openHelpModal);
+helpCloseBtn?.addEventListener('click', closeHelpModal);
+helpModal?.addEventListener('mousedown', (e) => {
+  if (e.target === helpModal) closeHelpModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && helpModal?.classList.contains('open')) {
+    closeHelpModal();
+  }
 });
 
 // ---- INIT ----

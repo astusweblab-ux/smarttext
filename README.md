@@ -11,6 +11,7 @@ Created by ASTUS LAB.
 - Floating action panel over selected text
 - Context menu actions
 - History and usage statistics
+- Built-in in-app instructions button (`ℹ Инструкция`)
 
 ## Load in Chrome
 
@@ -19,3 +20,15 @@ Created by ASTUS LAB.
 3. Click `Load unpacked`
 4. Select this folder
 
+## Hotkeys
+
+- `Ctrl+Shift+G` — Fix grammar
+- `Ctrl+Shift+S` — Shorten text
+- `Ctrl+Shift+L` — Expand text
+- `Ctrl+Shift+P` — Make text polite
+- `Ctrl+Shift+R` — Translate to Russian
+- `Ctrl+Shift+E` — Translate to English
+
+## License
+
+MIT — see [LICENSE](LICENSE).
