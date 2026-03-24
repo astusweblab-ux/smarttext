@@ -17,7 +17,8 @@ Created by ASTUS LAB.
 - Custom prompt templates (create, run, delete)
 - Export history to `CSV` / `JSON`
 - Configurable visible action buttons
-- Inline hints and tooltips across tabs and controls
+- Voice input via microphone
+- File upload and parsing for `TXT` / `MD` / `DOCX` / `PDF`
 
 ## Load in Chrome
 
@@ -40,6 +41,8 @@ Created by ASTUS LAB.
 - AI model preload toggle (`Settings → AI model`)
 - Optional cross-device history sync (`Settings → Privacy`)
 - Action button selection for floating panel and quick actions
+- Dedicated `🌐 Языки` tab for translations
+- Voice dictation and local document import
 
 ## License
 

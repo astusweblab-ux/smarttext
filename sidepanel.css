@@ -127,14 +127,24 @@ body {
   font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
   color: var(--text-muted); margin-bottom: 6px;
 }
-.hint-note {
+.input-tools {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.file-input-hidden { display: none; }
+.input-tool-status {
   font-size: 11px;
   color: var(--text-muted);
-  line-height: 1.55;
-  padding: 8px 10px;
-  background: rgba(139,92,246,0.08);
-  border: 1px dashed rgba(139,92,246,0.3);
-  border-radius: 7px;
+}
+.input-tool-status.ok { color: var(--green); }
+.input-tool-status.error { color: var(--red); }
+.mini-btn.voice-active {
+  color: var(--green);
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(52, 211, 153, 0.1);
 }
 .text-area {
   width: 100%; background: var(--bg3);
@@ -347,14 +357,6 @@ body {
 .setting-row-stack {
   flex-direction: column;
   align-items: stretch;
-}
-.setting-note {
-  padding: 8px 12px;
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.5;
-  border-top: 1px dashed var(--border);
-  background: rgba(139,92,246,0.05);
 }
 .setting-label { font-size: 12px; color: var(--text); flex: 1; }
 .setting-val { color: var(--accent); font-family: var(--mono); font-size: 11px; }

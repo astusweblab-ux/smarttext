@@ -1,30 +1,13 @@
 // sidepanel.js — SmartText Side Panel Logic
 // Created by ASTUS LAB
 import { initLocalAI, runAction, warmupLocalAI } from './ai/index.js';
+import { parseUploadedFile } from './ai/file-parsers.js';
 import { ACTION_META } from './ai/prompts.js';
 
 const ALL_ACTION_IDS = Object.keys(ACTION_META);
 const LANGUAGE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => id.startsWith('to_'));
 const CORE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => !id.startsWith('to_'));
 const DEFAULT_ENABLED_ACTIONS = ['fix', 'shorter', 'longer', 'polite', 'to_ru', 'to_en', 'formal', 'casual'];
-const ACTION_HINTS = {
-  fix: 'Исправляет орфографию, грамматику и пунктуацию',
-  shorter: 'Сжимает текст и оставляет главное',
-  longer: 'Раскрывает мысль и добавляет детали',
-  polite: 'Делает формулировки более вежливыми',
-  to_ru: 'Перевод на русский язык',
-  to_en: 'Перевод на английский язык',
-  to_es: 'Перевод на испанский язык',
-  to_de: 'Перевод на немецкий язык',
-  to_fr: 'Перевод на французский язык',
-  to_it: 'Перевод на итальянский язык',
-  to_pt: 'Перевод на португальский язык',
-  to_ja: 'Перевод на японский язык',
-  to_uk: 'Перевод на украинский язык',
-  to_pl: 'Перевод на польский язык',
-  formal: 'Преобразует в официальный деловой стиль',
-  casual: 'Преобразует в более разговорный стиль',
-};
 const DEFAULT_SETTINGS = {
   model: 'chrome-prompt-api',
   temperature: 0.7,
@@ -46,12 +29,18 @@ let lastTabId = null;
 let currentAction = null;
 let appSettings = { ...DEFAULT_SETTINGS };
 let templates = [];
+let recognition = null;
+let isListening = false;
 
 // ---- DOM ----
 const mainApp = document.getElementById('mainApp');
 const statusDot = document.getElementById('statusDot');
 const statusLabel = document.getElementById('statusLabel');
 const inputText = document.getElementById('inputText');
+const voiceInputBtn = document.getElementById('voiceInputBtn');
+const uploadFileBtn = document.getElementById('uploadFileBtn');
+const fileInput = document.getElementById('fileInput');
+const inputToolStatus = document.getElementById('inputToolStatus');
 const actionsGrid = document.getElementById('actionsGrid');
 const languagesGrid = document.getElementById('languagesGrid');
 const resultSection = document.getElementById('resultSection');
@@ -103,6 +92,150 @@ function setStatus(state, label) {
   statusLabel.textContent = label;
 }
 
+function setInputToolStatus(text, kind = '') {
+  if (!inputToolStatus) return;
+  inputToolStatus.textContent = text || '';
+  inputToolStatus.className = 'input-tool-status';
+  if (kind) inputToolStatus.classList.add(kind);
+}
+
+function appendTextToInput(insertText) {
+  const text = String(insertText || '').trim();
+  if (!text) return;
+
+  const start = typeof inputText.selectionStart === 'number' ? inputText.selectionStart : inputText.value.length;
+  const end = typeof inputText.selectionEnd === 'number' ? inputText.selectionEnd : inputText.value.length;
+  const left = inputText.value.slice(0, start);
+  const right = inputText.value.slice(end);
+  const needsLeftGap = left && !/\s$/.test(left);
+  const needsRightGap = right && !/^\s/.test(right);
+  const insertion = `${needsLeftGap ? ' ' : ''}${text}${needsRightGap ? ' ' : ''}`;
+
+  inputText.value = left + insertion + right;
+  const caret = (left + insertion).length;
+  inputText.setSelectionRange(caret, caret);
+  inputText.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function resetVoiceButton() {
+  if (!voiceInputBtn) return;
+  voiceInputBtn.classList.remove('voice-active');
+  voiceInputBtn.textContent = '🎤 Голос';
+}
+
+function stopVoiceInput() {
+  isListening = false;
+  try {
+    recognition?.stop();
+  } catch (_) {}
+  resetVoiceButton();
+}
+
+function ensureVoiceRecognition() {
+  if (recognition) return recognition;
+
+  const RecognitionCtor = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
+  if (!RecognitionCtor) return null;
+
+  recognition = new RecognitionCtor();
+  recognition.lang = navigator.language || 'ru-RU';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+
+  recognition.onstart = () => {
+    isListening = true;
+    voiceInputBtn?.classList.add('voice-active');
+    if (voiceInputBtn) voiceInputBtn.textContent = '⏹ Стоп';
+    setInputToolStatus('Слушаю…', 'ok');
+  };
+
+  recognition.onresult = (event) => {
+    let finalText = '';
+    let interimText = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const phrase = event.results[i]?.[0]?.transcript || '';
+      if (event.results[i].isFinal) {
+        finalText += phrase + ' ';
+      } else {
+        interimText += phrase + ' ';
+      }
+    }
+
+    if (finalText.trim()) {
+      appendTextToInput(finalText);
+      const preview = finalText.trim().slice(0, 50);
+      setInputToolStatus(`Добавлено: ${preview}${finalText.trim().length > 50 ? '…' : ''}`, 'ok');
+      return;
+    }
+
+    if (interimText.trim()) {
+      const preview = interimText.trim().slice(0, 50);
+      setInputToolStatus(`Слушаю: ${preview}${interimText.trim().length > 50 ? '…' : ''}`);
+    }
+  };
+
+  recognition.onerror = (event) => {
+    const msg = event?.error ? `Ошибка микрофона: ${event.error}` : 'Ошибка микрофона';
+    setInputToolStatus(msg, 'error');
+    isListening = false;
+    resetVoiceButton();
+  };
+
+  recognition.onend = () => {
+    if (isListening) {
+      setInputToolStatus('Голосовой ввод остановлен');
+    }
+    isListening = false;
+    resetVoiceButton();
+  };
+
+  return recognition;
+}
+
+function toggleVoiceInput() {
+  const rec = ensureVoiceRecognition();
+  if (!rec) {
+    setInputToolStatus('Голосовой ввод не поддерживается в этом браузере.', 'error');
+    return;
+  }
+
+  if (isListening) {
+    stopVoiceInput();
+    return;
+  }
+
+  try {
+    rec.start();
+  } catch (err) {
+    const msg = err?.message || 'Не удалось запустить микрофон';
+    setInputToolStatus(msg, 'error');
+  }
+}
+
+async function handleSelectedFile(file) {
+  if (!file) return;
+  setInputToolStatus(`Читаю файл: ${file.name}…`);
+
+  try {
+    const text = await parseUploadedFile(file);
+    if (!text.trim()) {
+      throw new Error('В файле нет текста.');
+    }
+
+    if (inputText.value.trim()) {
+      inputText.value += '\n\n' + text;
+    } else {
+      inputText.value = text;
+    }
+    inputText.dispatchEvent(new Event('input', { bubbles: true }));
+    setInputToolStatus(`Файл загружен: ${file.name} (${text.length} симв.)`, 'ok');
+  } catch (err) {
+    setInputToolStatus(err?.message || 'Ошибка загрузки файла.', 'error');
+  } finally {
+    if (fileInput) fileInput.value = '';
+  }
+}
+
 function normalizeEnabledActions(list) {
   const source = Array.isArray(list) ? list : DEFAULT_ENABLED_ACTIONS;
   const unique = [...new Set(source)];
@@ -126,14 +259,11 @@ function readCheckedActionsFromSettings() {
 function actionButtonHtml(actionId) {
   const meta = ACTION_META[actionId];
   if (!meta) return '';
-  const hintText = ACTION_HINTS[actionId] || '';
-  const tailHint = meta.shortcut || hintText;
-  const title = [meta.label || actionId, hintText].filter(Boolean).join(' — ');
   return `
-    <button class="action-btn" data-action="${actionId}" title="${escAttr(title)}">
+    <button class="action-btn" data-action="${actionId}">
       <span class="action-icon">${meta.icon || '✦'}</span>
       <span class="action-label">${escHtml(meta.label || actionId)}</span>
-      <span class="action-hint">${escHtml(tailHint || '')}</span>
+      <span class="action-hint">${escHtml(meta.shortcut || '')}</span>
     </button>
   `;
 }
@@ -247,8 +377,8 @@ function renderTemplates() {
       <div class="template-name">${escHtml(tpl.name)}</div>
       <div class="template-prompt">${escHtml(tpl.prompt)}</div>
       <div class="template-actions">
-        <button class="mini-btn t-run" data-id="${escAttr(tpl.id)}" title="Запустить этот шаблон для текущего текста">▶ Применить</button>
-        <button class="mini-btn danger t-del" data-id="${escAttr(tpl.id)}" title="Удалить шаблон">Удалить</button>
+        <button class="mini-btn t-run" data-id="${escAttr(tpl.id)}">▶ Применить</button>
+        <button class="mini-btn danger t-del" data-id="${escAttr(tpl.id)}">Удалить</button>
       </div>
     </div>
   `).join('');
@@ -343,6 +473,7 @@ function setActionsDisabled(disabled) {
 
 async function generate(action, text, instruction = '') {
   if (isGenerating || !text.trim()) return;
+  if (isListening) stopVoiceInput();
   isGenerating = true;
   currentAction = action;
 
@@ -510,6 +641,23 @@ function setupTabs() {
 }
 
 function bindEvents() {
+  const speechSupported = !!(globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition);
+  if (!speechSupported && voiceInputBtn) {
+    voiceInputBtn.disabled = true;
+    voiceInputBtn.textContent = '🎤 Недоступно';
+  }
+
+  voiceInputBtn?.addEventListener('click', toggleVoiceInput);
+
+  uploadFileBtn?.addEventListener('click', () => {
+    fileInput?.click();
+  });
+
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    await handleSelectedFile(file);
+  });
+
   const actionGridClickHandler = (e) => {
     const btn = e.target.closest('.action-btn');
     if (!btn) return;
