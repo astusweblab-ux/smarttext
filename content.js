@@ -22,7 +22,7 @@ const ALL_ACTIONS = [
 ];
 
 const ACTION_MAP = new Map(ALL_ACTIONS.map((a) => [a.id, a]));
-const DEFAULT_ENABLED_ACTIONS = ALL_ACTIONS.map((a) => a.id);
+const DEFAULT_ENABLED_ACTIONS = ['fix', 'shorter', 'longer', 'polite', 'to_ru', 'to_en', 'formal', 'casual'];
 const HOTKEY_MAP = {
   g: 'fix',
   s: 'shorter',
@@ -232,4 +232,3 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 loadPanelSettings().catch(() => {});
-

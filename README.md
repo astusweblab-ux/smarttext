@@ -13,6 +13,7 @@ Created by ASTUS LAB.
 - History and usage statistics
 - Built-in in-app instructions button (`ℹ Инструкция`)
 - Translation to multiple languages (RU/EN/ES/DE/FR/IT/PT/JA/UK/PL)
+- Dedicated `🌐 Языки` tab for all translation actions
 - Custom prompt templates (create, run, delete)
 - Export history to `CSV` / `JSON`
 - Configurable visible action buttons

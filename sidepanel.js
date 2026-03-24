@@ -4,7 +4,9 @@ import { initLocalAI, runAction, warmupLocalAI } from './ai/index.js';
 import { ACTION_META } from './ai/prompts.js';
 
 const ALL_ACTION_IDS = Object.keys(ACTION_META);
-const DEFAULT_ENABLED_ACTIONS = [...ALL_ACTION_IDS];
+const LANGUAGE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => id.startsWith('to_'));
+const CORE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => !id.startsWith('to_'));
+const DEFAULT_ENABLED_ACTIONS = ['fix', 'shorter', 'longer', 'polite', 'to_ru', 'to_en', 'formal', 'casual'];
 const DEFAULT_SETTINGS = {
   model: 'chrome-prompt-api',
   temperature: 0.7,
@@ -33,6 +35,7 @@ const statusDot = document.getElementById('statusDot');
 const statusLabel = document.getElementById('statusLabel');
 const inputText = document.getElementById('inputText');
 const actionsGrid = document.getElementById('actionsGrid');
+const languagesGrid = document.getElementById('languagesGrid');
 const resultSection = document.getElementById('resultSection');
 const resultText = document.getElementById('resultText');
 const genBar = document.getElementById('generatingBar');
@@ -115,8 +118,13 @@ function actionButtonHtml(actionId) {
 }
 
 function renderActionButtons() {
-  const ids = normalizeEnabledActions(appSettings.enabledActions);
-  actionsGrid.innerHTML = ids.map(actionButtonHtml).join('');
+  if (!actionsGrid) return;
+  actionsGrid.innerHTML = CORE_ACTION_IDS.map(actionButtonHtml).join('');
+}
+
+function renderLanguageButtons() {
+  if (!languagesGrid) return;
+  languagesGrid.innerHTML = LANGUAGE_ACTION_IDS.map(actionButtonHtml).join('');
 }
 
 function renderActionToggles() {
@@ -158,6 +166,7 @@ async function loadSettings() {
   };
   applySettingsToUi();
   renderActionButtons();
+  renderLanguageButtons();
 }
 
 function renderHelpShortcuts() {
@@ -303,8 +312,11 @@ async function exportHistory(format) {
 }
 
 function setActionsDisabled(disabled) {
-  actionsGrid.querySelectorAll('.action-btn').forEach((b) => {
-    b.disabled = disabled;
+  [actionsGrid, languagesGrid].forEach((grid) => {
+    if (!grid) return;
+    grid.querySelectorAll('.action-btn').forEach((b) => {
+      b.disabled = disabled;
+    });
   });
 }
 
@@ -442,7 +454,6 @@ async function saveSettings() {
   };
 
   await chrome.storage.sync.set(appSettings);
-  renderActionButtons();
   renderHelpShortcuts();
   await notifySettingsUpdated();
 
@@ -478,7 +489,7 @@ function setupTabs() {
 }
 
 function bindEvents() {
-  actionsGrid.addEventListener('click', (e) => {
+  const actionGridClickHandler = (e) => {
     const btn = e.target.closest('.action-btn');
     if (!btn) return;
     const text = inputText.value.trim();
@@ -488,7 +499,10 @@ function bindEvents() {
       return;
     }
     generate(btn.dataset.action, text);
-  });
+  };
+
+  actionsGrid?.addEventListener('click', actionGridClickHandler);
+  languagesGrid?.addEventListener('click', actionGridClickHandler);
 
   customRunBtn.addEventListener('click', () => {
     const text = inputText.value.trim();
@@ -617,7 +631,8 @@ function bindEvents() {
     if (msg.type === 'RUN_ACTION') {
       inputText.value = msg.text || '';
       lastTabId = msg.tabId || null;
-      document.querySelector('.tab[data-tab="actions"]')?.click();
+      const targetTab = String(msg.action || '').startsWith('to_') ? 'languages' : 'actions';
+      document.querySelector(`.tab[data-tab="${targetTab}"]`)?.click();
       generate(msg.action, msg.text);
     }
     if (msg.type === 'NAV_SETTINGS') {
@@ -661,4 +676,3 @@ async function init() {
 }
 
 init();
-

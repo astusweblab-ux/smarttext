@@ -1,11 +1,16 @@
 // background.js — SmartText Service Worker
 // Created by ASTUS LAB
 
-const ACTIONS = [
+const CORE_ACTIONS = [
   { id: 'fix',        title: '✨ Исправить грамматику' },
   { id: 'shorter',    title: '📝 Сделать короче' },
   { id: 'longer',     title: '📖 Сделать длиннее' },
   { id: 'polite',     title: '😊 Сделать вежливее' },
+  { id: 'formal',     title: '💼 Формальный стиль' },
+  { id: 'casual',     title: '💬 Разговорный стиль' },
+];
+
+const LANGUAGE_ACTIONS = [
   { id: 'to_ru',      title: '🌐 Перевести на русский' },
   { id: 'to_en',      title: '🌐 Перевести на английский' },
   { id: 'to_es',      title: '🌐 Перевести на испанский' },
@@ -16,8 +21,11 @@ const ACTIONS = [
   { id: 'to_ja',      title: '🌐 Перевести на японский' },
   { id: 'to_uk',      title: '🌐 Перевести на украинский' },
   { id: 'to_pl',      title: '🌐 Перевести на польский' },
-  { id: 'formal',     title: '💼 Формальный стиль' },
-  { id: 'casual',     title: '💬 Разговорный стиль' },
+];
+
+const ACTIONS = [
+  ...CORE_ACTIONS,
+  ...LANGUAGE_ACTIONS,
   { id: 'settings',   title: '⚙️ Настройки' },
 ];
 const ACTION_IDS = new Set(ACTIONS.map((a) => a.id).filter((id) => id !== 'settings'));
@@ -49,9 +57,14 @@ function mergeHistory(localHistory, syncHistory) {
 async function rebuildContextMenus() {
   await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({ id: 'smarttext', title: 'SmartText', contexts: ['selection'] });
-  for (const a of ACTIONS) {
+  for (const a of CORE_ACTIONS) {
     chrome.contextMenus.create({ id: a.id, parentId: 'smarttext', title: a.title, contexts: ['selection'] });
   }
+  chrome.contextMenus.create({ id: 'languages', parentId: 'smarttext', title: '🌐 Языки', contexts: ['selection'] });
+  for (const a of LANGUAGE_ACTIONS) {
+    chrome.contextMenus.create({ id: a.id, parentId: 'languages', title: a.title, contexts: ['selection'] });
+  }
+  chrome.contextMenus.create({ id: 'settings', parentId: 'smarttext', title: '⚙️ Настройки', contexts: ['selection'] });
 }
 
 // ---- CONTEXT MENU ----
