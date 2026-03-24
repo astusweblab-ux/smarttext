@@ -1,0 +1,67 @@
+/* SmartText — floating panel */
+
+#__smarttext_panel__ {
+  position: absolute;
+  z-index: 2147483647;
+  display: none;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.97);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+#__smarttext_panel__ .st-inner {
+  background: #1a1a2e;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 12px;
+  padding: 6px 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+#__smarttext_panel__ .st-logo {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8b5cf6;
+  letter-spacing: 0.5px;
+  padding: 0 6px 0 2px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  margin-right: 2px;
+}
+
+#__smarttext_panel__ .st-actions {
+  display: flex;
+  gap: 3px;
+}
+
+#__smarttext_panel__ .st-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 7px !important;
+  color: #c4b5fd !important;
+  font-size: 12px !important;
+  font-family: inherit !important;
+  padding: 4px 9px !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+  white-space: nowrap !important;
+  line-height: 1.4 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+#__smarttext_panel__ .st-btn:hover {
+  background: rgba(139, 92, 246, 0.2) !important;
+  border-color: rgba(139, 92, 246, 0.4) !important;
+  color: #ede9fe !important;
+}
+
+#__smarttext_panel__ .st-btn:active {
+  background: rgba(139, 92, 246, 0.35) !important;
+  transform: scale(0.97) !important;
+}

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Created by ASTUS LAB -->
+  <title>SmartText</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M11 2L13.5 8H20L14.5 12L16.5 18.5L11 14.5L5.5 18.5L7.5 12L2 8H8.5L11 2Z" stroke="#8b5cf6" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-text">SmartText</div>
+          <div class="logo-sub">by ASTUS LAB</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusLabel">Загрузка...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN APP -->
+    <div class="main-app" id="mainApp" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" data-tab="actions">✦ Действия</button>
+        <button class="tab" data-tab="history">📋 История</button>
+        <button class="tab" data-tab="stats">📊 Статистика</button>
+        <button class="tab" data-tab="settings">⚙️</button>
+      </div>
+
+      <!-- TAB: ACTIONS -->
+      <div class="tab-content active" id="tab-actions">
+
+        <!-- Text input area -->
+        <div class="input-section">
+          <div class="input-label">ТЕКСТ ДЛЯ ОБРАБОТКИ</div>
+          <textarea id="inputText" class="text-area" placeholder="Вставьте или введите текст здесь...&#10;&#10;Или выделите текст на любой странице и нажмите кнопку действия в плавающей панели." rows="6"></textarea>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="actions-grid">
+          <button class="action-btn" data-action="fix">
+            <span class="action-icon">✨</span>
+            <span class="action-label">Исправить</span>
+            <span class="action-hint">Ctrl+Shift+G</span>
+          </button>
+          <button class="action-btn" data-action="shorter">
+            <span class="action-icon">📝</span>
+            <span class="action-label">Короче</span>
+            <span class="action-hint">Ctrl+Shift+S</span>
+          </button>
+          <button class="action-btn" data-action="longer">
+            <span class="action-icon">📖</span>
+            <span class="action-label">Длиннее</span>
+            <span class="action-hint">Ctrl+Shift+L</span>
+          </button>
+          <button class="action-btn" data-action="polite">
+            <span class="action-icon">😊</span>
+            <span class="action-label">Вежливее</span>
+            <span class="action-hint">Ctrl+Shift+P</span>
+          </button>
+          <button class="action-btn" data-action="to_ru">
+            <span class="action-icon">🌍</span>
+            <span class="action-label">На русский</span>
+            <span class="action-hint">Ctrl+Shift+R</span>
+          </button>
+          <button class="action-btn" data-action="to_en">
+            <span class="action-icon">🌍</span>
+            <span class="action-label">To English</span>
+            <span class="action-hint">Ctrl+Shift+E</span>
+          </button>
+          <button class="action-btn" data-action="formal">
+            <span class="action-icon">💼</span>
+            <span class="action-label">Формально</span>
+            <span class="action-hint"></span>
+          </button>
+          <button class="action-btn" data-action="casual">
+            <span class="action-icon">💬</span>
+            <span class="action-label">Просто</span>
+            <span class="action-hint"></span>
+          </button>
+        </div>
+
+        <!-- Custom prompt -->
+        <div class="custom-section">
+          <div class="input-label">ПРОИЗВОЛЬНЫЙ ЗАПРОС</div>
+          <div class="custom-row">
+            <input type="text" id="customPrompt" class="custom-input" placeholder="Например: сделай текст в стиле Шекспира..."/>
+            <button class="custom-btn" id="customRunBtn">→</button>
+          </div>
+        </div>
+
+        <!-- Result area -->
+        <div class="result-section" id="resultSection" style="display:none">
+          <div class="result-header">
+            <div class="input-label">РЕЗУЛЬТАТ</div>
+            <div class="result-actions">
+              <button class="mini-btn" id="copyResultBtn">📋 Копировать</button>
+              <button class="mini-btn" id="insertResultBtn">↩ Вставить</button>
+              <button class="mini-btn danger" id="clearResultBtn">✕</button>
+            </div>
+          </div>
+          <div class="result-text" id="resultText"></div>
+          <div class="generating-bar" id="generatingBar" style="display:none">
+            <div class="generating-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: HISTORY -->
+      <div class="tab-content" id="tab-history">
+        <div class="tab-toolbar">
+          <button class="mini-btn danger" id="clearHistoryBtn">🗑 Очистить историю</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="empty-state">История пуста</div>
+        </div>
+      </div>
+
+      <!-- TAB: STATS -->
+      <div class="tab-content" id="tab-stats">
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-val" id="statTotal">0</div>
+            <div class="stat-lbl">Операций выполнено</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statChars">0</div>
+            <div class="stat-lbl">Символов обработано</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statTime">0 мин</div>
+            <div class="stat-lbl">Времени сэкономлено</div>
+          </div>
+        </div>
+        <div class="input-label" style="margin: 16px 0 8px;">ПО ДЕЙСТВИЯМ</div>
+        <div class="action-stats" id="actionStats"></div>
+      </div>
+
+      <!-- TAB: SETTINGS -->
+      <div class="tab-content" id="tab-settings">
+        <div class="settings-list">
+
+          <div class="settings-group">
+            <div class="settings-group-title">AI МОДЕЛЬ</div>
+            <div class="setting-row">
+              <div class="setting-label">Модель</div>
+              <select class="setting-select" id="settingModel">
+                <option value="chrome-prompt-api">Chrome Built-in AI (Prompt API)</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Температура <span class="setting-val" id="tempVal">0.7</span></div>
+              <input type="range" class="setting-range" id="settingTemp" min="0.1" max="1.5" step="0.1" value="0.7">
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Макс. длина ответа <span class="setting-val" id="maxTokVal">500</span></div>
+              <input type="range" class="setting-range" id="settingMaxTok" min="100" max="2000" step="100" value="500">
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">ПЛАВАЮЩАЯ ПАНЕЛЬ</div>
+            <div class="setting-row">
+              <div class="setting-label">Включить панель</div>
+              <label class="toggle"><input type="checkbox" id="settingPanel" checked><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Задержка <span class="setting-val" id="delayVal">300</span> мс</div>
+              <input type="range" class="setting-range" id="settingDelay" min="100" max="1000" step="50" value="300">
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">ПРИВАТНОСТЬ</div>
+            <div class="setting-row">
+              <div class="setting-label">Сохранять историю</div>
+              <label class="toggle"><input type="checkbox" id="settingHistory" checked><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Показывать уведомления</div>
+              <label class="toggle"><input type="checkbox" id="settingNotify" checked><span class="slider"></span></label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">РЕЖИМ AI</div>
+            <div class="setting-row">
+              <div class="setting-label key-status-label">Локально, без API-ключа</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="settings-footer">
+          <button class="save-btn" id="saveSettingsBtn">Сохранить настройки</button>
+        </div>
+      </div>
+
+    </div><!-- /main-app -->
+  </div><!-- /app -->
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
