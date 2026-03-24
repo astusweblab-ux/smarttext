@@ -18,9 +18,10 @@
   padding: 6px 8px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.1);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: min(92vw, 780px);
 }
 
 #__smarttext_panel__ .st-logo {
@@ -35,7 +36,9 @@
 
 #__smarttext_panel__ .st-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 3px;
+  max-width: 100%;
 }
 
 #__smarttext_panel__ .st-btn {

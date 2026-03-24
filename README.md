@@ -12,6 +12,10 @@ Created by ASTUS LAB.
 - Context menu actions
 - History and usage statistics
 - Built-in in-app instructions button (`ℹ Инструкция`)
+- Translation to multiple languages (RU/EN/ES/DE/FR/IT/PT/JA/UK/PL)
+- Custom prompt templates (create, run, delete)
+- Export history to `CSV` / `JSON`
+- Configurable visible action buttons
 
 ## Load in Chrome
 
@@ -28,6 +32,12 @@ Created by ASTUS LAB.
 - `Ctrl+Shift+P` — Make text polite
 - `Ctrl+Shift+R` — Translate to Russian
 - `Ctrl+Shift+E` — Translate to English
+
+## v2 Additions
+
+- AI model preload toggle (`Settings → AI model`)
+- Optional cross-device history sync (`Settings → Privacy`)
+- Action button selection for floating panel and quick actions
 
 ## License
 

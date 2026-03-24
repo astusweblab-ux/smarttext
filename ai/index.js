@@ -9,6 +9,7 @@ const SUPPORTED_OUTPUT_LANGS = ['en', 'es', 'ja'];
 let promptApi = null;
 let session = null;
 let sessionTemperature = null;
+let sessionOutputLanguage = null;
 let sessionInitPromise = null;
 
 function normalizeAvailability(rawStatus) {
@@ -57,8 +58,8 @@ function detectOutputLanguage() {
   return 'en';
 }
 
-function getLanguageOptionVariants() {
-  const preferred = detectOutputLanguage();
+function getLanguageOptionVariants(preferredLanguage = detectOutputLanguage()) {
+  const preferred = SUPPORTED_OUTPUT_LANGS.includes(preferredLanguage) ? preferredLanguage : 'en';
   const fallback = 'en';
   const order = preferred === fallback ? [fallback] : [preferred, fallback];
 
@@ -106,11 +107,12 @@ function destroySession() {
   } catch (_) {}
   session = null;
   sessionTemperature = null;
+  sessionOutputLanguage = null;
 }
 
-async function getAvailability(adapter) {
+async function getAvailability(adapter, preferredLanguage) {
   if (!adapter?.availability) return 'unknown';
-  const variants = [...getLanguageOptionVariants(), {}];
+  const variants = [...getLanguageOptionVariants(preferredLanguage), {}];
   for (const options of variants) {
     try {
       return normalizeAvailability(await adapter.availability(options));
@@ -119,9 +121,9 @@ async function getAvailability(adapter) {
   return 'unknown';
 }
 
-async function createLocalSession(adapter, temperature) {
+async function createLocalSession(adapter, temperature, preferredLanguage) {
   const optionsList = [];
-  const languageVariants = getLanguageOptionVariants();
+  const languageVariants = getLanguageOptionVariants(preferredLanguage);
 
   for (const langOptions of languageVariants) {
     optionsList.push({ ...langOptions, systemPrompt: SYSTEM_PROMPT, temperature });
@@ -144,8 +146,14 @@ async function createLocalSession(adapter, temperature) {
   throw lastError || new Error('Не удалось создать локальную AI-сессию');
 }
 
-async function ensureSession(temperature) {
-  if (session && sessionTemperature === temperature) return session;
+function getPreferredOutputLanguageForAction(action) {
+  if (action === 'to_es') return 'es';
+  if (action === 'to_ja') return 'ja';
+  return 'en';
+}
+
+async function ensureSession(temperature, preferredLanguage) {
+  if (session && sessionTemperature === temperature && sessionOutputLanguage === preferredLanguage) return session;
 
   if (sessionInitPromise) return sessionInitPromise;
 
@@ -157,15 +165,16 @@ async function ensureSession(temperature) {
       );
     }
 
-    const availability = await getAvailability(promptApi);
+    const availability = await getAvailability(promptApi, preferredLanguage);
     if (availability === 'unavailable') {
       throw new Error('Локальная модель недоступна на этом устройстве.');
     }
 
-    if (!session || sessionTemperature !== temperature) {
+    if (!session || sessionTemperature !== temperature || sessionOutputLanguage !== preferredLanguage) {
       destroySession();
-      session = await createLocalSession(promptApi, temperature);
+      session = await createLocalSession(promptApi, temperature, preferredLanguage);
       sessionTemperature = temperature;
+      sessionOutputLanguage = preferredLanguage;
     }
 
     return session;
@@ -214,7 +223,7 @@ export async function initLocalAI() {
     };
   }
 
-  const availability = await getAvailability(promptApi);
+  const availability = await getAvailability(promptApi, detectOutputLanguage());
   if (availability === 'unavailable') {
     return {
       available: false,
@@ -226,6 +235,27 @@ export async function initLocalAI() {
     available: true,
     message: availability === 'downloading' ? 'Локальная модель скачивается Chrome' : 'Локальный AI доступен'
   };
+}
+
+export async function warmupLocalAI() {
+  const settings = await chrome.storage.sync.get({
+    temperature: 0.7,
+    preloadModel: true
+  });
+
+  if (!settings.preloadModel) {
+    return { warmed: false, reason: 'disabled' };
+  }
+
+  try {
+    await ensureSession(settings.temperature, detectOutputLanguage());
+    return { warmed: true, reason: 'ready' };
+  } catch (err) {
+    if (err?.name === 'NotAllowedError') {
+      return { warmed: false, reason: 'gesture' };
+    }
+    return { warmed: false, reason: err?.message || 'failed' };
+  }
 }
 
 export async function runAction(action, text, instruction = '', onChunk) {
@@ -240,10 +270,11 @@ export async function runAction(action, text, instruction = '', onChunk) {
 
   const promptBase = action === 'custom' ? PROMPTS.custom(text, instruction) : promptFn(text);
   const prompt = buildPrompt(promptBase, settings.maxTokens);
+  const preferredLanguage = getPreferredOutputLanguageForAction(action);
 
   let modelSession;
   try {
-    modelSession = await ensureSession(settings.temperature);
+    modelSession = await ensureSession(settings.temperature, preferredLanguage);
   } catch (err) {
     if (err?.name === 'NotAllowedError') {
       throw new Error('Нужен пользовательский жест: откройте SmartText и нажмите любое действие ещё раз.');
@@ -256,7 +287,7 @@ export async function runAction(action, text, instruction = '', onChunk) {
   } catch (err) {
     // Если сессия была сброшена/устарела — пересоздаём один раз и повторяем.
     destroySession();
-    const retrySession = await ensureSession(settings.temperature);
+    const retrySession = await ensureSession(settings.temperature, preferredLanguage);
     return generateText(retrySession, prompt, onChunk);
   }
 }

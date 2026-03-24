@@ -53,48 +53,7 @@
         </div>
 
         <!-- Action buttons -->
-        <div class="actions-grid">
-          <button class="action-btn" data-action="fix">
-            <span class="action-icon">✨</span>
-            <span class="action-label">Исправить</span>
-            <span class="action-hint">Ctrl+Shift+G</span>
-          </button>
-          <button class="action-btn" data-action="shorter">
-            <span class="action-icon">📝</span>
-            <span class="action-label">Короче</span>
-            <span class="action-hint">Ctrl+Shift+S</span>
-          </button>
-          <button class="action-btn" data-action="longer">
-            <span class="action-icon">📖</span>
-            <span class="action-label">Длиннее</span>
-            <span class="action-hint">Ctrl+Shift+L</span>
-          </button>
-          <button class="action-btn" data-action="polite">
-            <span class="action-icon">😊</span>
-            <span class="action-label">Вежливее</span>
-            <span class="action-hint">Ctrl+Shift+P</span>
-          </button>
-          <button class="action-btn" data-action="to_ru">
-            <span class="action-icon">🌍</span>
-            <span class="action-label">На русский</span>
-            <span class="action-hint">Ctrl+Shift+R</span>
-          </button>
-          <button class="action-btn" data-action="to_en">
-            <span class="action-icon">🌍</span>
-            <span class="action-label">To English</span>
-            <span class="action-hint">Ctrl+Shift+E</span>
-          </button>
-          <button class="action-btn" data-action="formal">
-            <span class="action-icon">💼</span>
-            <span class="action-label">Формально</span>
-            <span class="action-hint"></span>
-          </button>
-          <button class="action-btn" data-action="casual">
-            <span class="action-icon">💬</span>
-            <span class="action-label">Просто</span>
-            <span class="action-hint"></span>
-          </button>
-        </div>
+        <div class="actions-grid" id="actionsGrid"></div>
 
         <!-- Custom prompt -->
         <div class="custom-section">
@@ -102,6 +61,21 @@
           <div class="custom-row">
             <input type="text" id="customPrompt" class="custom-input" placeholder="Например: сделай текст в стиле Шекспира..."/>
             <button class="custom-btn" id="customRunBtn">→</button>
+          </div>
+        </div>
+
+        <!-- Templates -->
+        <div class="templates-section">
+          <div class="templates-header">
+            <div class="input-label">ШАБЛОНЫ ПРОМПТОВ</div>
+          </div>
+          <div class="template-form">
+            <input type="text" id="templateNameInput" class="custom-input" placeholder="Название шаблона (например: HR ответ)">
+            <textarea id="templatePromptInput" class="template-prompt-input" rows="2" placeholder="Текст шаблона. Например: Перепиши в формальном деловом стиле и добавь чёткий CTA."></textarea>
+            <button class="custom-btn template-add-btn" id="addTemplateBtn">+ Добавить шаблон</button>
+          </div>
+          <div class="templates-list" id="templatesList">
+            <div class="empty-state">Шаблонов пока нет</div>
           </div>
         </div>
 
@@ -125,6 +99,8 @@
       <!-- TAB: HISTORY -->
       <div class="tab-content" id="tab-history">
         <div class="tab-toolbar">
+          <button class="mini-btn" id="exportJsonBtn">⬇ JSON</button>
+          <button class="mini-btn" id="exportCsvBtn">⬇ CSV</button>
           <button class="mini-btn danger" id="clearHistoryBtn">🗑 Очистить историю</button>
         </div>
         <div class="history-list" id="historyList">
@@ -172,6 +148,10 @@
               <div class="setting-label">Макс. длина ответа <span class="setting-val" id="maxTokVal">500</span></div>
               <input type="range" class="setting-range" id="settingMaxTok" min="100" max="2000" step="100" value="500">
             </div>
+            <div class="setting-row">
+              <div class="setting-label">Предзагрузка модели</div>
+              <label class="toggle"><input type="checkbox" id="settingPreload" checked><span class="slider"></span></label>
+            </div>
           </div>
 
           <div class="settings-group">
@@ -184,6 +164,10 @@
               <div class="setting-label">Задержка <span class="setting-val" id="delayVal">300</span> мс</div>
               <input type="range" class="setting-range" id="settingDelay" min="100" max="1000" step="50" value="300">
             </div>
+            <div class="setting-row setting-row-stack">
+              <div class="setting-label">Кнопки в панели</div>
+              <div class="actions-toggle-list" id="actionsToggleList"></div>
+            </div>
           </div>
 
           <div class="settings-group">
@@ -195,6 +179,10 @@
             <div class="setting-row">
               <div class="setting-label">Показывать уведомления</div>
               <label class="toggle"><input type="checkbox" id="settingNotify" checked><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Синхронизировать историю между устройствами</div>
+              <label class="toggle"><input type="checkbox" id="settingSyncHistory"><span class="slider"></span></label>
             </div>
           </div>
 
@@ -236,9 +224,9 @@
               <li>Исправить грамматику и стиль</li>
               <li>Сделать текст короче или длиннее</li>
               <li>Сделать текст более вежливым</li>
-              <li>Переводить RU ⇄ EN</li>
+              <li>Переводить на 10 языков: RU, EN, ES, DE, FR, IT, PT, JA, UK, PL</li>
               <li>Менять стиль: формальный или разговорный</li>
-              <li>Выполнять произвольные инструкции в поле «Произвольный запрос»</li>
+              <li>Выполнять произвольные инструкции и шаблоны промптов</li>
             </ul>
           </div>
 
