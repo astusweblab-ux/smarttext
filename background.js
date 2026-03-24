@@ -416,7 +416,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       stats._chars = (stats._chars || 0) + (msg.chars || 0);
       chrome.storage.local.set({ stats });
     });
-    return true;
+    return;
   }
   if (msg.type === 'SAVE_HISTORY') {
     const entry = { ...msg.entry, ts: Date.now() };
@@ -434,7 +434,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       if (syncHistory.length > 20) syncHistory.length = 20;
       chrome.storage.sync.set({ historySync: syncHistory }, () => {});
     });
-    return true;
+    return;
   }
   if (msg.type === 'GET_HISTORY') {
     chrome.storage.local.get(['history'], (r) => {
@@ -457,7 +457,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         chrome.storage.session.set({ pendingAction: { action: msg.action, text: msg.text, tabId: sender.tab?.id } });
         tryOpenSidePanel(sender.tab?.id).catch(() => {});
       });
-    return true;
+    return;
   }
   if (msg.type === 'INJECT_TEXT') {
     // Inject text back to page
@@ -480,5 +480,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         args: [msg.text]
       });
     }
+    return;
   }
 });

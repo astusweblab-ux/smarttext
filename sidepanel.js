@@ -1434,6 +1434,7 @@ const settingPreload = document.getElementById('settingPreload');
 const templateNameInput = document.getElementById('templateNameInput');
 const templatePromptInput = document.getElementById('templatePromptInput');
 const addTemplateBtn = document.getElementById('addTemplateBtn');
+const templatesEmptyHint = document.getElementById('templatesEmptyHint');
 const templatesList = document.getElementById('templatesList');
 const helpBtn = document.getElementById('helpBtn');
 const helpModal = document.getElementById('helpModal');
@@ -1573,7 +1574,8 @@ function applyStaticTranslations() {
     helpTitle: 'helpTitle',
     helpKicker: 'helpKicker',
     uploadFileBtn: 'buttonFile',
-    addTemplateBtn: 'buttonAddTemplate'
+    addTemplateBtn: 'buttonAddTemplate',
+    templatesEmptyHint: 'emptyTemplates'
   };
 
   Object.entries(textMap).forEach(([id, key]) => {
@@ -2080,8 +2082,16 @@ async function saveTemplates() {
 
 function renderTemplates() {
   if (!templates.length) {
-    templatesList.innerHTML = `<div class="empty-state">${escHtml(t('emptyTemplates'))}</div>`;
+    templatesList.innerHTML = '';
+    if (templatesEmptyHint) {
+      templatesEmptyHint.style.display = 'block';
+      templatesEmptyHint.textContent = t('emptyTemplates');
+    }
     return;
+  }
+
+  if (templatesEmptyHint) {
+    templatesEmptyHint.style.display = 'none';
   }
 
   templatesList.innerHTML = templates.map((tpl) => `
@@ -2308,6 +2318,13 @@ async function notifySettingsUpdated() {
   if (tab?.id) {
     await chrome.runtime.sendMessage({ type: 'ENSURE_CONTENT_SCRIPT', tabId: tab.id }).catch(() => {});
     chrome.tabs.sendMessage(tab.id, { type: 'SMARTTEXT_SETTINGS_UPDATED' }).catch(() => {});
+    chrome.tabs.sendMessage(tab.id, {
+      type: 'SMARTTEXT_PANEL_CONFIG',
+      showPanel: appSettings.showPanel,
+      panelDelay: appSettings.panelDelay,
+      uiLanguage: appSettings.uiLanguage,
+      enabledActions: appSettings.enabledActions
+    }).catch(() => {});
   }
   chrome.runtime.sendMessage({ type: 'REFRESH_CONTEXT_MENUS' }).catch(() => {});
 }

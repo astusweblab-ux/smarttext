@@ -64,6 +64,22 @@
         <!-- Action buttons -->
         <div class="actions-grid" id="actionsGrid"></div>
 
+        <!-- Result area -->
+        <div class="result-section" id="resultSection" style="display:none">
+          <div class="result-header">
+            <div class="input-label" id="labelResult">РЕЗУЛЬТАТ</div>
+            <div class="result-actions">
+              <button class="mini-btn" id="copyResultBtn">📋 Копировать</button>
+              <button class="mini-btn" id="insertResultBtn">↩ Вставить</button>
+              <button class="mini-btn danger" id="clearResultBtn">✕</button>
+            </div>
+          </div>
+          <div class="result-text" id="resultText"></div>
+          <div class="generating-bar" id="generatingBar" style="display:none">
+            <div class="generating-fill"></div>
+          </div>
+        </div>
+
         <!-- Custom prompt -->
         <div class="custom-section">
           <div class="input-label" id="labelCustomPrompt">ПРОИЗВОЛЬНЫЙ ЗАПРОС</div>
@@ -81,26 +97,12 @@
           <div class="template-form">
             <input type="text" id="templateNameInput" class="custom-input" placeholder="Название шаблона (например: HR ответ)">
             <textarea id="templatePromptInput" class="template-prompt-input" rows="2" placeholder="Текст шаблона. Например: Перепиши в формальном деловом стиле и добавь чёткий CTA."></textarea>
-            <button class="custom-btn template-add-btn" id="addTemplateBtn">+ Добавить шаблон</button>
-          </div>
-          <div class="templates-list" id="templatesList">
-            <div class="empty-state">Шаблонов пока нет</div>
-          </div>
-        </div>
-
-        <!-- Result area -->
-        <div class="result-section" id="resultSection" style="display:none">
-          <div class="result-header">
-            <div class="input-label" id="labelResult">РЕЗУЛЬТАТ</div>
-            <div class="result-actions">
-              <button class="mini-btn" id="copyResultBtn">📋 Копировать</button>
-              <button class="mini-btn" id="insertResultBtn">↩ Вставить</button>
-              <button class="mini-btn danger" id="clearResultBtn">✕</button>
+            <div class="template-form-footer">
+              <button class="custom-btn template-add-btn" id="addTemplateBtn">+ Добавить шаблон</button>
+              <div class="template-empty-inline" id="templatesEmptyHint">Шаблонов пока нет</div>
             </div>
           </div>
-          <div class="result-text" id="resultText"></div>
-          <div class="generating-bar" id="generatingBar" style="display:none">
-            <div class="generating-fill"></div>
+          <div class="templates-list" id="templatesList">
           </div>
         </div>
       </div>

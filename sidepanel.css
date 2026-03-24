@@ -228,6 +228,18 @@ body {
 }
 .template-prompt-input:focus { border-color: rgba(139,92,246,0.4); }
 .template-add-btn { align-self: flex-start; }
+.template-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.template-empty-inline {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  flex: 1;
+}
 .templates-list {
   display: flex;
   flex-direction: column;

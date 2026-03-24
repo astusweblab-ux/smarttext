@@ -303,9 +303,16 @@ async function loadPanelSettings() {
   panelSettings.uiLanguage = s.uiLanguage || 'auto';
   uiLang = resolveUiLanguage(panelSettings.uiLanguage);
   panelSettings.enabledActions = normalizeEnabledActions(s.enabledActions);
-  if (!panelSettings.showPanel) hidePanel();
+  if (!panelSettings.showPanel) {
+    hidePanel();
+  }
 
-  if (panel) createPanel();
+  if (panelSettings.showPanel) {
+    if (panel) createPanel();
+  } else if (panel) {
+    panel.remove();
+    panel = null;
+  }
 }
 
 function createPanel() {
@@ -372,10 +379,11 @@ function showPanel(rect) {
 
 function hidePanel() {
   if (!panel) return;
-  panel.style.opacity = '0';
-  panel.style.transform = 'translateY(-4px) scale(0.97)';
+  const panelEl = panel;
+  panelEl.style.opacity = '0';
+  panelEl.style.transform = 'translateY(-4px) scale(0.97)';
   setTimeout(() => {
-    if (panel) panel.style.display = 'none';
+    panelEl.style.display = 'none';
   }, 200);
 }
 
@@ -465,6 +473,31 @@ chrome.runtime.onMessage.addListener((msg) => {
 
   if (msg.type === 'SMARTTEXT_SETTINGS_UPDATED') {
     loadPanelSettings().catch(() => {});
+  }
+  if (msg.type === 'SMARTTEXT_PANEL_CONFIG') {
+    if (Object.prototype.hasOwnProperty.call(msg, 'showPanel')) {
+      panelSettings.showPanel = !!msg.showPanel;
+    }
+    if (Object.prototype.hasOwnProperty.call(msg, 'panelDelay')) {
+      panelSettings.panelDelay = Math.min(1000, Math.max(100, Number(msg.panelDelay) || 300));
+    }
+    if (Object.prototype.hasOwnProperty.call(msg, 'uiLanguage')) {
+      panelSettings.uiLanguage = msg.uiLanguage || 'auto';
+      uiLang = resolveUiLanguage(panelSettings.uiLanguage);
+    }
+    if (Object.prototype.hasOwnProperty.call(msg, 'enabledActions')) {
+      panelSettings.enabledActions = normalizeEnabledActions(msg.enabledActions);
+    }
+
+    if (!panelSettings.showPanel) {
+      hidePanel();
+      if (panel) {
+        panel.remove();
+        panel = null;
+      }
+      return;
+    }
+    if (panel) createPanel();
   }
 });
 
