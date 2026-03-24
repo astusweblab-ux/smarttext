@@ -366,7 +366,20 @@ body {
   flex-direction: column;
   align-items: stretch;
 }
+.setting-row-disabled {
+  opacity: 0.52;
+}
 .setting-label { font-size: 12px; color: var(--text); flex: 1; }
+.setting-label-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.setting-sub {
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
 .setting-val { color: var(--accent); font-family: var(--mono); font-size: 11px; }
 .setting-select {
   background: var(--bg2); border: 1px solid var(--border);

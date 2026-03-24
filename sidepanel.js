@@ -119,7 +119,8 @@ const UI_TEXT = {
     settingsMaxTokens: 'Макс. длина ответа',
     settingsPreload: 'Предзагрузка модели',
     settingsPanelTitle: 'ПЛАВАЮЩАЯ ПАНЕЛЬ',
-    settingsPanelEnabled: 'Включить панель',
+    settingsPanelEnabled: 'Показывать панель над выделением',
+    settingsPanelHint: 'Включает/выключает всплывающую панель с кнопками при выделении текста на странице',
     settingsDelay: 'Задержка',
     settingsMs: 'мс',
     settingsPanelButtons: 'Кнопки в панели',
@@ -243,7 +244,8 @@ const UI_TEXT = {
     settingsMaxTokens: 'Max response length',
     settingsPreload: 'Model preload',
     settingsPanelTitle: 'FLOATING PANEL',
-    settingsPanelEnabled: 'Enable panel',
+    settingsPanelEnabled: 'Show panel above text selection',
+    settingsPanelHint: 'Turns the floating action panel on/off when text is selected on a page',
     settingsDelay: 'Delay',
     settingsMs: 'ms',
     settingsPanelButtons: 'Panel buttons',
@@ -1552,6 +1554,7 @@ function applyStaticTranslations() {
     labelPreload: 'settingsPreload',
     titleGroupPanel: 'settingsPanelTitle',
     labelPanelEnabled: 'settingsPanelEnabled',
+    labelPanelHint: 'settingsPanelHint',
     labelPanelDelay: 'settingsDelay',
     labelMs: 'settingsMs',
     labelPanelButtons: 'settingsPanelButtons',
@@ -1948,6 +1951,51 @@ function renderActionToggles() {
   }).join('');
 }
 
+function applyPanelSettingsAvailability() {
+  const panelEnabled = !!settingPanel?.checked;
+  const delayRow = settingDelay?.closest('.setting-row');
+  const buttonsRow = actionsToggleList?.closest('.setting-row');
+
+  if (settingDelay) {
+    settingDelay.disabled = !panelEnabled;
+  }
+  actionsToggleList?.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+    el.disabled = !panelEnabled;
+  });
+
+  delayRow?.classList.toggle('setting-row-disabled', !panelEnabled);
+  buttonsRow?.classList.toggle('setting-row-disabled', !panelEnabled);
+}
+
+function flashSettingsSaved() {
+  if (!saveSettingsBtn) return;
+  saveSettingsBtn.textContent = t('statusSaved');
+  setTimeout(() => {
+    saveSettingsBtn.textContent = t('buttonSaveSettings');
+  }, 1400);
+}
+
+async function savePanelEnabledState() {
+  const showPanel = !!settingPanel?.checked;
+  appSettings.showPanel = showPanel;
+  applyPanelSettingsAvailability();
+  await chrome.storage.sync.set({ showPanel });
+  await notifySettingsUpdated();
+  flashSettingsSaved();
+}
+
+async function savePanelActionsState() {
+  const enabledActions = readCheckedActionsFromSettings();
+  appSettings.enabledActions = enabledActions;
+  renderActionToggles();
+  applyPanelSettingsAvailability();
+  renderHelpShortcuts();
+
+  await chrome.storage.sync.set({ enabledActions });
+  await notifySettingsUpdated();
+  flashSettingsSaved();
+}
+
 function applySettingsToUi() {
   uiLang = resolveUiLanguage(appSettings.uiLanguage);
   applyStaticTranslations();
@@ -1968,6 +2016,7 @@ function applySettingsToUi() {
   settingSyncHistory.checked = appSettings.syncHistory;
   settingPreload.checked = appSettings.preloadModel;
   renderActionToggles();
+  applyPanelSettingsAvailability();
 }
 
 async function loadSettings() {
@@ -2257,6 +2306,7 @@ async function renderStats() {
 async function notifySettingsUpdated() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id) {
+    await chrome.runtime.sendMessage({ type: 'ENSURE_CONTENT_SCRIPT', tabId: tab.id }).catch(() => {});
     chrome.tabs.sendMessage(tab.id, { type: 'SMARTTEXT_SETTINGS_UPDATED' }).catch(() => {});
   }
   chrome.runtime.sendMessage({ type: 'REFRESH_CONTEXT_MENUS' }).catch(() => {});
@@ -2291,11 +2341,7 @@ async function saveSettings() {
 
   await chrome.storage.sync.set(appSettings);
   await notifySettingsUpdated();
-
-  saveSettingsBtn.textContent = t('statusSaved');
-  setTimeout(() => {
-    saveSettingsBtn.textContent = t('buttonSaveSettings');
-  }, 1400);
+  flashSettingsSaved();
 }
 
 async function checkPending() {
@@ -2462,6 +2508,14 @@ function bindEvents() {
   exportCsvBtn?.addEventListener('click', () => exportHistory('csv'));
 
   saveSettingsBtn?.addEventListener('click', saveSettings);
+  settingPanel?.addEventListener('change', () => {
+    savePanelEnabledState().catch(() => {});
+  });
+  actionsToggleList?.addEventListener('change', (e) => {
+    const changed = e.target?.closest('input[type="checkbox"]');
+    if (!changed) return;
+    savePanelActionsState().catch(() => {});
+  });
 
   settingUILang?.addEventListener('change', () => {
     uiLang = resolveUiLanguage(settingUILang.value);
@@ -2469,6 +2523,7 @@ function bindEvents() {
     renderActionButtons();
     renderLanguageButtons();
     renderActionToggles();
+    applyPanelSettingsAvailability();
     renderTemplates();
     renderHelpShortcuts();
     renderHistory().catch(() => {});

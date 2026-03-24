@@ -253,6 +253,41 @@ function menuLabel(key, uiLang) {
   return MENU_TEXT[uiLang]?.[key] || MENU_TEXT.en[key] || key;
 }
 
+async function ensureContentScriptInjected(tabId) {
+  if (!tabId) return false;
+  let alreadyLoaded = false;
+  try {
+    const [{ result } = {}] = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => document.documentElement?.dataset?.smarttextContentLoaded === '1'
+    });
+    alreadyLoaded = result === true;
+  } catch {
+    alreadyLoaded = false;
+  }
+
+  if (alreadyLoaded) return true;
+
+  try {
+    await chrome.scripting.insertCSS({
+      target: { tabId },
+      files: ['content.css']
+    });
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['content.js']
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function tryOpenSidePanel(tabId) {
+  if (!tabId) return Promise.resolve(false);
+  return chrome.sidePanel.open({ tabId }).then(() => true).catch(() => false);
+}
+
 function compactHistoryEntry(entry) {
   return {
     action: entry.action || 'custom',
@@ -318,16 +353,19 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (!tab?.id) return;
+  const openPromise = tryOpenSidePanel(tab.id);
+  ensureContentScriptInjected(tab.id).catch(() => {});
 
   if (info.menuItemId === 'settings') {
-    await chrome.sidePanel.open({ tabId: tab.id });
-    setTimeout(() => chrome.runtime.sendMessage({ type: 'NAV_SETTINGS' }).catch(() => {}), 600);
+    openPromise.finally(() => {
+      setTimeout(() => chrome.runtime.sendMessage({ type: 'NAV_SETTINGS' }).catch(() => {}), 600);
+    });
     return;
   }
   if (ACTION_IDS.has(info.menuItemId) && info.selectionText) {
-    await chrome.sidePanel.open({ tabId: tab.id });
+    openPromise.catch(() => {});
     setTimeout(() => {
       chrome.runtime.sendMessage({
         type: 'RUN_ACTION',
@@ -342,7 +380,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 // ---- SIDE PANEL OPEN on icon click ----
 chrome.action.onClicked.addListener((tab) => {
-  chrome.sidePanel.open({ tabId: tab.id });
+  if (!tab?.id) return;
+  tryOpenSidePanel(tab.id).catch(() => {});
+  ensureContentScriptInjected(tab.id).catch(() => {});
 });
 
 // ---- MESSAGES ----
@@ -359,6 +399,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === 'REFRESH_CONTEXT_MENUS') {
     rebuildContextMenus().then(() => sendResponse({ ok: true })).catch(() => sendResponse({ ok: false }));
+    return true;
+  }
+  if (msg.type === 'ENSURE_CONTENT_SCRIPT') {
+    ensureContentScriptInjected(msg.tabId).then((ok) => sendResponse({ ok })).catch(() => sendResponse({ ok: false }));
     return true;
   }
   if (msg.type === 'GET_STATS') {
@@ -411,7 +455,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     chrome.runtime.sendMessage({ type: 'RUN_ACTION', action: msg.action, text: msg.text, tabId: sender.tab?.id })
       .catch(() => {
         chrome.storage.session.set({ pendingAction: { action: msg.action, text: msg.text, tabId: sender.tab?.id } });
-        chrome.sidePanel.open({ tabId: sender.tab?.id });
+        tryOpenSidePanel(sender.tab?.id).catch(() => {});
       });
     return true;
   }

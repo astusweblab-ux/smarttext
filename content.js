@@ -2,6 +2,12 @@
 // Created by ASTUS LAB
 // Плавающая панель над выделением + горячие клавиши
 
+(() => {
+const rootElement = document.documentElement;
+if (!rootElement) return;
+if (rootElement.dataset.smarttextContentLoaded === '1') return;
+rootElement.dataset.smarttextContentLoaded = '1';
+
 const ALL_ACTIONS = [
   { id: 'fix',     icon: '✨' },
   { id: 'shorter', icon: '📝' },
@@ -254,6 +260,36 @@ function getVisibleActions() {
     .filter(Boolean);
 }
 
+async function syncPanelRuntimeSettings() {
+  try {
+    const runtime = await chrome.storage.sync.get({
+      showPanel: panelSettings.showPanel,
+      uiLanguage: panelSettings.uiLanguage,
+      enabledActions: panelSettings.enabledActions
+    });
+
+    const nextShowPanel = !!runtime.showPanel;
+    const nextLanguageConfig = runtime.uiLanguage || 'auto';
+    const nextUiLang = resolveUiLanguage(nextLanguageConfig);
+    const nextEnabledActions = normalizeEnabledActions(runtime.enabledActions);
+
+    const actionsChanged = nextEnabledActions.join('|') !== panelSettings.enabledActions.join('|');
+    const langChanged = nextUiLang !== uiLang || nextLanguageConfig !== panelSettings.uiLanguage;
+
+    panelSettings.showPanel = nextShowPanel;
+    panelSettings.uiLanguage = nextLanguageConfig;
+    panelSettings.enabledActions = nextEnabledActions;
+    uiLang = nextUiLang;
+
+    if ((actionsChanged || langChanged) && panel) {
+      createPanel();
+    }
+    return nextShowPanel;
+  } catch {
+    return panelSettings.showPanel;
+  }
+}
+
 async function loadPanelSettings() {
   const s = await chrome.storage.sync.get({
     showPanel: true,
@@ -267,6 +303,7 @@ async function loadPanelSettings() {
   panelSettings.uiLanguage = s.uiLanguage || 'auto';
   uiLang = resolveUiLanguage(panelSettings.uiLanguage);
   panelSettings.enabledActions = normalizeEnabledActions(s.enabledActions);
+  if (!panelSettings.showPanel) hidePanel();
 
   if (panel) createPanel();
 }
@@ -354,31 +391,33 @@ function triggerAction(action, text) {
 }
 
 document.addEventListener('mouseup', (e) => {
-  if (e.target.closest('#__smarttext_panel__')) return;
+  if (e.target instanceof Element && e.target.closest('#__smarttext_panel__')) return;
   clearTimeout(showTimer);
   showTimer = setTimeout(() => {
-    if (!panelSettings.showPanel) {
-      hidePanel();
-      return;
-    }
     const sel = window.getSelection();
     const text = sel?.toString().trim();
-    if (!text || text.length < 2) {
-      hidePanel();
-      return;
-    }
-    if (!sel.rangeCount) {
+    if (!text || text.length < 2 || !sel?.rangeCount) {
       hidePanel();
       return;
     }
     const range = sel.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    showPanel(rect);
+
+    syncPanelRuntimeSettings().then((showPanelEnabled) => {
+      panelSettings.showPanel = showPanelEnabled;
+      if (!panelSettings.showPanel) {
+        hidePanel();
+        return;
+      }
+      showPanel(rect);
+    }).catch(() => {
+      hidePanel();
+    });
   }, panelSettings.panelDelay);
 });
 
 document.addEventListener('mousedown', (e) => {
-  if (e.target.closest('#__smarttext_panel__')) return;
+  if (e.target instanceof Element && e.target.closest('#__smarttext_panel__')) return;
   clearTimeout(showTimer);
   hidePanel();
 });
@@ -437,3 +476,4 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 loadPanelSettings().catch(() => {});
+})();

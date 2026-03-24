@@ -28,6 +28,12 @@ Created by ASTUS LAB.
 3. Click `Load unpacked`
 4. Select this folder
 
+## Permissions model
+
+- SmartText uses `activeTab` (on-demand access only after explicit user action)
+- No `host_permissions` and no `"<all_urls>"` access
+- Content script is injected only when user clicks extension icon or runs SmartText from context menu
+
 ## Hotkeys
 
 - `Ctrl+Shift+G` — Fix grammar
