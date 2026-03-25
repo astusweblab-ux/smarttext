@@ -221,10 +221,50 @@ const HOTKEY_MAP = {
   e: 'to_en'
 };
 
+const THEME_PRESET_IDS = ['dark', 'light', 'ocean', 'custom'];
+const THEME_PRESETS = {
+  dark: {
+    bg: '#0e0e16',
+    bg2: '#14141f',
+    bg3: '#1c1c2e',
+    accent: '#8b5cf6',
+    accent2: '#6d28d9',
+    text: '#e2e0ff',
+    textMuted: '#6b6b8a',
+    textDim: '#3a3a5c',
+    border: '#2b2b3d'
+  },
+  light: {
+    bg: '#f5f7ff',
+    bg2: '#ffffff',
+    bg3: '#eef2ff',
+    accent: '#4f46e5',
+    accent2: '#3730a3',
+    text: '#1f2442',
+    textMuted: '#5f6787',
+    textDim: '#8790b0',
+    border: '#d8ddf0'
+  },
+  ocean: {
+    bg: '#081824',
+    bg2: '#0f2233',
+    bg3: '#143046',
+    accent: '#22d3ee',
+    accent2: '#0ea5e9',
+    text: '#ddf6ff',
+    textMuted: '#7bb8cc',
+    textDim: '#4e7f93',
+    border: '#1f455c'
+  }
+};
+const DEFAULT_CUSTOM_THEME = { ...THEME_PRESETS.dark };
+
 const panelSettings = {
   showPanel: true,
   panelDelay: 300,
   uiLanguage: 'auto',
+  themePreset: 'dark',
+  customTheme: { ...DEFAULT_CUSTOM_THEME },
   enabledActions: [...DEFAULT_ENABLED_ACTIONS]
 };
 
@@ -241,6 +281,75 @@ function resolveUiLanguage(configValue) {
     if (browserLang.startsWith(`${lang}-`) || browserLang === lang) return lang;
   }
   return 'en';
+}
+
+function normalizeThemePreset(value) {
+  return THEME_PRESET_IDS.includes(value) ? value : 'dark';
+}
+
+function normalizeHexColor(value, fallback) {
+  const match = /^#?([0-9a-f]{6})$/i.exec(String(value || '').trim());
+  if (!match) return fallback;
+  return `#${match[1].toLowerCase()}`;
+}
+
+function normalizeThemeColors(theme, fallback = DEFAULT_CUSTOM_THEME) {
+  const source = theme && typeof theme === 'object' ? theme : {};
+  const safeFallback = {
+    ...DEFAULT_CUSTOM_THEME,
+    ...fallback
+  };
+  const textMuted = normalizeHexColor(source.textMuted, safeFallback.textMuted);
+  return {
+    bg: normalizeHexColor(source.bg, safeFallback.bg),
+    bg2: normalizeHexColor(source.bg2, safeFallback.bg2),
+    bg3: normalizeHexColor(source.bg3, safeFallback.bg3),
+    accent: normalizeHexColor(source.accent, safeFallback.accent),
+    accent2: normalizeHexColor(source.accent2, safeFallback.accent2),
+    text: normalizeHexColor(source.text, safeFallback.text),
+    textMuted,
+    textDim: normalizeHexColor(source.textDim, textMuted),
+    border: normalizeHexColor(source.border, safeFallback.border)
+  };
+}
+
+function getActiveThemeColors() {
+  const preset = normalizeThemePreset(panelSettings.themePreset);
+  if (preset === 'custom') {
+    return normalizeThemeColors(panelSettings.customTheme, DEFAULT_CUSTOM_THEME);
+  }
+  return normalizeThemeColors(THEME_PRESETS[preset], DEFAULT_CUSTOM_THEME);
+}
+
+function hexToRgb(hexColor) {
+  const safe = normalizeHexColor(hexColor, '#000000').slice(1);
+  return {
+    r: Number.parseInt(safe.slice(0, 2), 16),
+    g: Number.parseInt(safe.slice(2, 4), 16),
+    b: Number.parseInt(safe.slice(4, 6), 16)
+  };
+}
+
+function rgbaFromHex(hexColor, alpha) {
+  const rgb = hexToRgb(hexColor);
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
+function applyPanelTheme() {
+  const theme = getActiveThemeColors();
+  rootElement.style.setProperty('--stp-inner-bg', theme.bg2);
+  rootElement.style.setProperty('--stp-border', rgbaFromHex(theme.accent, 0.35));
+  rootElement.style.setProperty(
+    '--stp-shadow',
+    `0 8px 32px ${rgbaFromHex(theme.bg, 0.45)}, 0 0 0 1px ${rgbaFromHex(theme.accent, 0.1)}`
+  );
+  rootElement.style.setProperty('--stp-logo-color', theme.accent);
+  rootElement.style.setProperty('--stp-logo-divider', rgbaFromHex(theme.text, 0.16));
+  rootElement.style.setProperty('--stp-btn-color', theme.text);
+  rootElement.style.setProperty('--stp-btn-hover-bg', rgbaFromHex(theme.accent, 0.2));
+  rootElement.style.setProperty('--stp-btn-hover-border', rgbaFromHex(theme.accent, 0.45));
+  rootElement.style.setProperty('--stp-btn-hover-color', theme.text);
+  rootElement.style.setProperty('--stp-btn-active-bg', rgbaFromHex(theme.accent2, 0.35));
 }
 
 function getActionLabel(actionId) {
@@ -265,12 +374,16 @@ async function syncPanelRuntimeSettings() {
     const runtime = await chrome.storage.sync.get({
       showPanel: panelSettings.showPanel,
       uiLanguage: panelSettings.uiLanguage,
+      themePreset: panelSettings.themePreset,
+      customTheme: panelSettings.customTheme,
       enabledActions: panelSettings.enabledActions
     });
 
     const nextShowPanel = !!runtime.showPanel;
     const nextLanguageConfig = runtime.uiLanguage || 'auto';
     const nextUiLang = resolveUiLanguage(nextLanguageConfig);
+    const nextThemePreset = normalizeThemePreset(runtime.themePreset);
+    const nextCustomTheme = normalizeThemeColors(runtime.customTheme, panelSettings.customTheme || DEFAULT_CUSTOM_THEME);
     const nextEnabledActions = normalizeEnabledActions(runtime.enabledActions);
 
     const actionsChanged = nextEnabledActions.join('|') !== panelSettings.enabledActions.join('|');
@@ -278,8 +391,11 @@ async function syncPanelRuntimeSettings() {
 
     panelSettings.showPanel = nextShowPanel;
     panelSettings.uiLanguage = nextLanguageConfig;
+    panelSettings.themePreset = nextThemePreset;
+    panelSettings.customTheme = nextCustomTheme;
     panelSettings.enabledActions = nextEnabledActions;
     uiLang = nextUiLang;
+    applyPanelTheme();
 
     if ((actionsChanged || langChanged) && panel) {
       createPanel();
@@ -295,14 +411,19 @@ async function loadPanelSettings() {
     showPanel: true,
     panelDelay: 300,
     uiLanguage: 'auto',
+    themePreset: 'dark',
+    customTheme: DEFAULT_CUSTOM_THEME,
     enabledActions: DEFAULT_ENABLED_ACTIONS
   });
 
   panelSettings.showPanel = !!s.showPanel;
   panelSettings.panelDelay = Math.min(1000, Math.max(100, Number(s.panelDelay) || 300));
   panelSettings.uiLanguage = s.uiLanguage || 'auto';
+  panelSettings.themePreset = normalizeThemePreset(s.themePreset);
+  panelSettings.customTheme = normalizeThemeColors(s.customTheme, DEFAULT_CUSTOM_THEME);
   uiLang = resolveUiLanguage(panelSettings.uiLanguage);
   panelSettings.enabledActions = normalizeEnabledActions(s.enabledActions);
+  applyPanelTheme();
   if (!panelSettings.showPanel) {
     hidePanel();
   }
@@ -317,6 +438,7 @@ async function loadPanelSettings() {
 
 function createPanel() {
   if (panel) panel.remove();
+  applyPanelTheme();
 
   const actions = getVisibleActions();
   panel = document.createElement('div');
@@ -485,9 +607,16 @@ chrome.runtime.onMessage.addListener((msg) => {
       panelSettings.uiLanguage = msg.uiLanguage || 'auto';
       uiLang = resolveUiLanguage(panelSettings.uiLanguage);
     }
+    if (Object.prototype.hasOwnProperty.call(msg, 'themePreset')) {
+      panelSettings.themePreset = normalizeThemePreset(msg.themePreset);
+    }
+    if (Object.prototype.hasOwnProperty.call(msg, 'customTheme')) {
+      panelSettings.customTheme = normalizeThemeColors(msg.customTheme, DEFAULT_CUSTOM_THEME);
+    }
     if (Object.prototype.hasOwnProperty.call(msg, 'enabledActions')) {
       panelSettings.enabledActions = normalizeEnabledActions(msg.enabledActions);
     }
+    applyPanelTheme();
 
     if (!panelSettings.showPanel) {
       hidePanel();
@@ -503,7 +632,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== 'sync') return;
-  if (changes.showPanel || changes.panelDelay || changes.enabledActions || changes.uiLanguage) {
+  if (changes.showPanel || changes.panelDelay || changes.enabledActions || changes.uiLanguage || changes.themePreset || changes.customTheme) {
     loadPanelSettings().catch(() => {});
   }
 });

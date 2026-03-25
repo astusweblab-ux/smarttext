@@ -8,6 +8,43 @@ const ALL_ACTION_IDS = Object.keys(ACTION_META);
 const LANGUAGE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => id.startsWith('to_'));
 const CORE_ACTION_IDS = ALL_ACTION_IDS.filter((id) => !id.startsWith('to_'));
 const DEFAULT_ENABLED_ACTIONS = ['fix', 'shorter', 'longer', 'polite', 'to_ru', 'to_en', 'formal', 'casual'];
+const THEME_PRESET_IDS = ['dark', 'light', 'ocean', 'custom'];
+const THEME_PRESETS = {
+  dark: {
+    bg: '#0e0e16',
+    bg2: '#14141f',
+    bg3: '#1c1c2e',
+    accent: '#8b5cf6',
+    accent2: '#6d28d9',
+    text: '#e2e0ff',
+    textMuted: '#6b6b8a',
+    textDim: '#3a3a5c',
+    border: '#2b2b3d'
+  },
+  light: {
+    bg: '#f5f7ff',
+    bg2: '#ffffff',
+    bg3: '#eef2ff',
+    accent: '#4f46e5',
+    accent2: '#3730a3',
+    text: '#1f2442',
+    textMuted: '#5f6787',
+    textDim: '#8790b0',
+    border: '#d8ddf0'
+  },
+  ocean: {
+    bg: '#081824',
+    bg2: '#0f2233',
+    bg3: '#143046',
+    accent: '#22d3ee',
+    accent2: '#0ea5e9',
+    text: '#ddf6ff',
+    textMuted: '#7bb8cc',
+    textDim: '#4e7f93',
+    border: '#1f455c'
+  }
+};
+const DEFAULT_CUSTOM_THEME = { ...THEME_PRESETS.dark };
 const DEFAULT_SETTINGS = {
   model: 'chrome-prompt-api',
   temperature: 0.7,
@@ -19,6 +56,8 @@ const DEFAULT_SETTINGS = {
   syncHistory: false,
   preloadModel: true,
   uiLanguage: 'auto',
+  themePreset: 'dark',
+  customTheme: { ...DEFAULT_CUSTOM_THEME },
   enabledActions: DEFAULT_ENABLED_ACTIONS
 };
 
@@ -128,6 +167,21 @@ const UI_TEXT = {
     settingsSaveHistory: 'Сохранять историю',
     settingsShowNotify: 'Показывать уведомления',
     settingsSyncHistory: 'Синхронизировать историю между устройствами',
+    settingsThemeTitle: 'ТЕМА',
+    settingsThemePreset: 'Тема интерфейса',
+    settingsThemeHint: 'Выберите готовую тему или настройте цвета вручную',
+    settingsThemeDark: 'Тёмная',
+    settingsThemeLight: 'Светлая',
+    settingsThemeOcean: 'Контрастная',
+    settingsThemeCustom: 'Своя',
+    settingsThemeBg: 'Фон',
+    settingsThemeBg2: 'Панели',
+    settingsThemeBg3: 'Карточки',
+    settingsThemeAccent: 'Акцент',
+    settingsThemeAccent2: 'Акцент 2',
+    settingsThemeText: 'Текст',
+    settingsThemeTextMuted: 'Вторичный текст',
+    settingsThemeBorder: 'Границы',
     settingsModeTitle: 'РЕЖИМ AI',
     settingsModeLocal: 'Локально, без API-ключа',
     helpKicker: 'SMARTTEXT GUIDE',
@@ -253,6 +307,21 @@ const UI_TEXT = {
     settingsSaveHistory: 'Save history',
     settingsShowNotify: 'Show notifications',
     settingsSyncHistory: 'Sync history between devices',
+    settingsThemeTitle: 'THEME',
+    settingsThemePreset: 'Interface theme',
+    settingsThemeHint: 'Choose a preset theme or fine-tune colors manually',
+    settingsThemeDark: 'Dark',
+    settingsThemeLight: 'Light',
+    settingsThemeOcean: 'High contrast',
+    settingsThemeCustom: 'Custom',
+    settingsThemeBg: 'Background',
+    settingsThemeBg2: 'Panels',
+    settingsThemeBg3: 'Cards',
+    settingsThemeAccent: 'Accent',
+    settingsThemeAccent2: 'Accent 2',
+    settingsThemeText: 'Text',
+    settingsThemeTextMuted: 'Muted text',
+    settingsThemeBorder: 'Borders',
     settingsModeTitle: 'AI MODE',
     settingsModeLocal: 'Local mode, no API key',
     helpKicker: 'SMARTTEXT GUIDE',
@@ -1384,7 +1453,7 @@ let isGenerating = false;
 let lastResult = '';
 let lastTabId = null;
 let currentAction = null;
-let appSettings = { ...DEFAULT_SETTINGS };
+let appSettings = { ...DEFAULT_SETTINGS, customTheme: { ...DEFAULT_SETTINGS.customTheme } };
 let templates = [];
 let recognition = null;
 let isListening = false;
@@ -1431,6 +1500,16 @@ const settingHistory = document.getElementById('settingHistory');
 const settingNotify = document.getElementById('settingNotify');
 const settingSyncHistory = document.getElementById('settingSyncHistory');
 const settingPreload = document.getElementById('settingPreload');
+const settingThemePreset = document.getElementById('settingThemePreset');
+const themeColorRows = document.getElementById('themeColorRows');
+const themeBgInput = document.getElementById('themeBgInput');
+const themeBg2Input = document.getElementById('themeBg2Input');
+const themeBg3Input = document.getElementById('themeBg3Input');
+const themeAccentInput = document.getElementById('themeAccentInput');
+const themeAccent2Input = document.getElementById('themeAccent2Input');
+const themeTextInput = document.getElementById('themeTextInput');
+const themeTextMutedInput = document.getElementById('themeTextMutedInput');
+const themeBorderInput = document.getElementById('themeBorderInput');
 const templateNameInput = document.getElementById('templateNameInput');
 const templatePromptInput = document.getElementById('templatePromptInput');
 const addTemplateBtn = document.getElementById('addTemplateBtn');
@@ -1458,6 +1537,117 @@ function resolveUiLanguage(configValue) {
     if (browserLang.startsWith(`${lang}-`) || browserLang === lang) return lang;
   }
   return 'en';
+}
+
+function normalizeThemePreset(value) {
+  return THEME_PRESET_IDS.includes(value) ? value : 'dark';
+}
+
+function normalizeHexColor(value, fallback) {
+  const match = /^#?([0-9a-f]{6})$/i.exec(String(value || '').trim());
+  if (!match) return fallback;
+  return `#${match[1].toLowerCase()}`;
+}
+
+function normalizeThemeColors(theme, fallback = DEFAULT_CUSTOM_THEME) {
+  const source = theme && typeof theme === 'object' ? theme : {};
+  const safeFallback = {
+    ...DEFAULT_CUSTOM_THEME,
+    ...fallback
+  };
+  const textMuted = normalizeHexColor(source.textMuted, safeFallback.textMuted);
+  return {
+    bg: normalizeHexColor(source.bg, safeFallback.bg),
+    bg2: normalizeHexColor(source.bg2, safeFallback.bg2),
+    bg3: normalizeHexColor(source.bg3, safeFallback.bg3),
+    accent: normalizeHexColor(source.accent, safeFallback.accent),
+    accent2: normalizeHexColor(source.accent2, safeFallback.accent2),
+    text: normalizeHexColor(source.text, safeFallback.text),
+    textMuted,
+    textDim: normalizeHexColor(source.textDim, textMuted),
+    border: normalizeHexColor(source.border, safeFallback.border)
+  };
+}
+
+function getThemeColorInputs() {
+  return {
+    bg: themeBgInput,
+    bg2: themeBg2Input,
+    bg3: themeBg3Input,
+    accent: themeAccentInput,
+    accent2: themeAccent2Input,
+    text: themeTextInput,
+    textMuted: themeTextMutedInput,
+    border: themeBorderInput
+  };
+}
+
+function activeThemeColors(settings = appSettings) {
+  const safePreset = normalizeThemePreset(settings.themePreset);
+  if (safePreset === 'custom') {
+    return normalizeThemeColors(settings.customTheme, DEFAULT_CUSTOM_THEME);
+  }
+  return normalizeThemeColors(THEME_PRESETS[safePreset], DEFAULT_CUSTOM_THEME);
+}
+
+function hexToRgb(hexColor) {
+  const safe = normalizeHexColor(hexColor, '#000000').slice(1);
+  return {
+    r: Number.parseInt(safe.slice(0, 2), 16),
+    g: Number.parseInt(safe.slice(2, 4), 16),
+    b: Number.parseInt(safe.slice(4, 6), 16)
+  };
+}
+
+function rgbaFromHex(hexColor, alpha) {
+  const rgb = hexToRgb(hexColor);
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
+function applyThemeColors(themeColors) {
+  const theme = normalizeThemeColors(themeColors, DEFAULT_CUSTOM_THEME);
+  const root = document.documentElement;
+  root.style.setProperty('--bg', theme.bg);
+  root.style.setProperty('--bg2', theme.bg2);
+  root.style.setProperty('--bg3', theme.bg3);
+  root.style.setProperty('--accent', theme.accent);
+  root.style.setProperty('--accent2', theme.accent2);
+  root.style.setProperty('--text', theme.text);
+  root.style.setProperty('--text-muted', theme.textMuted);
+  root.style.setProperty('--text-dim', theme.textDim);
+  root.style.setProperty('--border', theme.border);
+  root.style.setProperty('--accent-dim', rgbaFromHex(theme.accent, 0.12));
+  root.style.setProperty('--accent-glow', rgbaFromHex(theme.accent, 0.25));
+}
+
+function setThemeControls(colors) {
+  const safe = normalizeThemeColors(colors, DEFAULT_CUSTOM_THEME);
+  const inputs = getThemeColorInputs();
+  Object.entries(inputs).forEach(([key, input]) => {
+    if (!input) return;
+    const nextValue = safe[key];
+    if (nextValue) input.value = nextValue;
+  });
+}
+
+function readThemeColorsFromControls() {
+  const inputs = getThemeColorInputs();
+  const draft = {};
+  Object.entries(inputs).forEach(([key, input]) => {
+    if (!input) return;
+    draft[key] = input.value;
+  });
+  return normalizeThemeColors(draft, appSettings.customTheme || DEFAULT_CUSTOM_THEME);
+}
+
+function applyThemeSettingsAvailability() {
+  const customMode = normalizeThemePreset(settingThemePreset?.value || appSettings.themePreset) === 'custom';
+  if (themeColorRows) {
+    themeColorRows.classList.toggle('theme-colors-disabled', !customMode);
+  }
+  themeColorRows?.querySelectorAll('input[type="color"]').forEach((el) => {
+    el.disabled = !customMode;
+  });
 }
 
 function localeCode() {
@@ -1563,6 +1753,17 @@ function applyStaticTranslations() {
     labelSaveHistory: 'settingsSaveHistory',
     labelShowNotify: 'settingsShowNotify',
     labelSyncHistory: 'settingsSyncHistory',
+    titleGroupTheme: 'settingsThemeTitle',
+    labelThemePreset: 'settingsThemePreset',
+    labelThemeHint: 'settingsThemeHint',
+    labelThemeBg: 'settingsThemeBg',
+    labelThemeBg2: 'settingsThemeBg2',
+    labelThemeBg3: 'settingsThemeBg3',
+    labelThemeAccent: 'settingsThemeAccent',
+    labelThemeAccent2: 'settingsThemeAccent2',
+    labelThemeText: 'settingsThemeText',
+    labelThemeTextMuted: 'settingsThemeTextMuted',
+    labelThemeBorder: 'settingsThemeBorder',
     titleGroupMode: 'settingsModeTitle',
     labelModeLocal: 'settingsModeLocal',
     copyResultBtn: 'buttonCopy',
@@ -1604,6 +1805,19 @@ function applyStaticTranslations() {
     Object.entries(UI_LANG_OPTION_LABELS).forEach(([value, label]) => {
       const opt = settingUILang.querySelector(`option[value="${value}"]`);
       if (opt) opt.textContent = label;
+    });
+  }
+
+  if (settingThemePreset) {
+    const themeOptionKeys = {
+      dark: 'settingsThemeDark',
+      light: 'settingsThemeLight',
+      ocean: 'settingsThemeOcean',
+      custom: 'settingsThemeCustom'
+    };
+    Object.entries(themeOptionKeys).forEach(([value, key]) => {
+      const opt = settingThemePreset.querySelector(`option[value="${value}"]`);
+      if (opt) opt.textContent = t(key);
     });
   }
 
@@ -2002,6 +2216,9 @@ function applySettingsToUi() {
   uiLang = resolveUiLanguage(appSettings.uiLanguage);
   applyStaticTranslations();
 
+  appSettings.themePreset = normalizeThemePreset(appSettings.themePreset);
+  appSettings.customTheme = normalizeThemeColors(appSettings.customTheme, DEFAULT_CUSTOM_THEME);
+
   const hasModelOption = [...settingModel.options].some((opt) => opt.value === appSettings.model);
   settingModel.value = hasModelOption ? appSettings.model : DEFAULT_SETTINGS.model;
   const hasLangOption = [...settingUILang.options].some((opt) => opt.value === appSettings.uiLanguage);
@@ -2017,6 +2234,12 @@ function applySettingsToUi() {
   settingNotify.checked = appSettings.showNotify;
   settingSyncHistory.checked = appSettings.syncHistory;
   settingPreload.checked = appSettings.preloadModel;
+  if (settingThemePreset) {
+    settingThemePreset.value = appSettings.themePreset;
+  }
+  setThemeControls(appSettings.customTheme);
+  applyThemeSettingsAvailability();
+  applyThemeColors(activeThemeColors(appSettings));
   renderActionToggles();
   applyPanelSettingsAvailability();
 }
@@ -2026,7 +2249,9 @@ async function loadSettings() {
   appSettings = {
     ...DEFAULT_SETTINGS,
     ...s,
-    enabledActions: normalizeEnabledActions(s.enabledActions)
+    enabledActions: normalizeEnabledActions(s.enabledActions),
+    themePreset: normalizeThemePreset(s.themePreset),
+    customTheme: normalizeThemeColors(s.customTheme, DEFAULT_CUSTOM_THEME)
   };
   applySettingsToUi();
   renderActionButtons();
@@ -2323,13 +2548,18 @@ async function notifySettingsUpdated() {
       showPanel: appSettings.showPanel,
       panelDelay: appSettings.panelDelay,
       uiLanguage: appSettings.uiLanguage,
-      enabledActions: appSettings.enabledActions
+      enabledActions: appSettings.enabledActions,
+      themePreset: appSettings.themePreset,
+      customTheme: appSettings.customTheme
     }).catch(() => {});
   }
   chrome.runtime.sendMessage({ type: 'REFRESH_CONTEXT_MENUS' }).catch(() => {});
 }
 
 async function saveSettings() {
+  const selectedThemePreset = normalizeThemePreset(settingThemePreset?.value || appSettings.themePreset);
+  const customTheme = readThemeColorsFromControls();
+
   const settings = {
     model: settingModel.value,
     uiLanguage: settingUILang.value,
@@ -2341,13 +2571,17 @@ async function saveSettings() {
     showNotify: settingNotify.checked,
     syncHistory: settingSyncHistory.checked,
     preloadModel: settingPreload.checked,
-    enabledActions: readCheckedActionsFromSettings()
+    enabledActions: readCheckedActionsFromSettings(),
+    themePreset: selectedThemePreset,
+    customTheme
   };
 
   appSettings = {
     ...DEFAULT_SETTINGS,
     ...settings,
-    enabledActions: normalizeEnabledActions(settings.enabledActions)
+    enabledActions: normalizeEnabledActions(settings.enabledActions),
+    themePreset: normalizeThemePreset(settings.themePreset),
+    customTheme: normalizeThemeColors(settings.customTheme, DEFAULT_CUSTOM_THEME)
   };
 
   applySettingsToUi();
@@ -2545,6 +2779,24 @@ function bindEvents() {
     renderHelpShortcuts();
     renderHistory().catch(() => {});
     renderStats().catch(() => {});
+  });
+
+  settingThemePreset?.addEventListener('change', () => {
+    appSettings.themePreset = normalizeThemePreset(settingThemePreset.value);
+    applyThemeSettingsAvailability();
+    applyThemeColors(activeThemeColors(appSettings));
+  });
+
+  themeColorRows?.addEventListener('input', (e) => {
+    const input = e.target;
+    if (!(input instanceof HTMLInputElement) || input.type !== 'color') return;
+    appSettings.customTheme = readThemeColorsFromControls();
+    if (settingThemePreset && settingThemePreset.value !== 'custom') {
+      settingThemePreset.value = 'custom';
+      appSettings.themePreset = 'custom';
+      applyThemeSettingsAvailability();
+    }
+    applyThemeColors(activeThemeColors(appSettings));
   });
 
   [settingTemp, settingMaxTok, settingDelay].forEach((el) => {

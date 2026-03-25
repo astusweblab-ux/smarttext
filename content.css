@@ -1,6 +1,16 @@
 /* SmartText — floating panel */
 
 #__smarttext_panel__ {
+  --stp-inner-bg: #1a1a2e;
+  --stp-border: rgba(139, 92, 246, 0.35);
+  --stp-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.1);
+  --stp-logo-color: #8b5cf6;
+  --stp-logo-divider: rgba(255,255,255,0.1);
+  --stp-btn-color: #c4b5fd;
+  --stp-btn-hover-bg: rgba(139, 92, 246, 0.2);
+  --stp-btn-hover-border: rgba(139, 92, 246, 0.4);
+  --stp-btn-hover-color: #ede9fe;
+  --stp-btn-active-bg: rgba(139, 92, 246, 0.35);
   position: absolute;
   z-index: 2147483647;
   display: none;
@@ -12,11 +22,11 @@
 }
 
 #__smarttext_panel__ .st-inner {
-  background: #1a1a2e;
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: var(--stp-inner-bg);
+  border: 1px solid var(--stp-border);
   border-radius: 12px;
   padding: 6px 8px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.1);
+  box-shadow: var(--stp-shadow);
   display: flex;
   align-items: flex-start;
   gap: 6px;
@@ -27,10 +37,10 @@
 #__smarttext_panel__ .st-logo {
   font-size: 11px;
   font-weight: 700;
-  color: #8b5cf6;
+  color: var(--stp-logo-color);
   letter-spacing: 0.5px;
   padding: 0 6px 0 2px;
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid var(--stp-logo-divider);
   margin-right: 2px;
 }
 
@@ -45,7 +55,7 @@
   background: transparent !important;
   border: 1px solid transparent !important;
   border-radius: 7px !important;
-  color: #c4b5fd !important;
+  color: var(--stp-btn-color) !important;
   font-size: 12px !important;
   font-family: inherit !important;
   padding: 4px 9px !important;
@@ -59,12 +69,12 @@
 }
 
 #__smarttext_panel__ .st-btn:hover {
-  background: rgba(139, 92, 246, 0.2) !important;
-  border-color: rgba(139, 92, 246, 0.4) !important;
-  color: #ede9fe !important;
+  background: var(--stp-btn-hover-bg) !important;
+  border-color: var(--stp-btn-hover-border) !important;
+  color: var(--stp-btn-hover-color) !important;
 }
 
 #__smarttext_panel__ .st-btn:active {
-  background: rgba(139, 92, 246, 0.35) !important;
+  background: var(--stp-btn-active-bg) !important;
   transform: scale(0.97) !important;
 }

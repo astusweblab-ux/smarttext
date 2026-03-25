@@ -15,7 +15,7 @@
       <div class="header-left">
         <div class="logo-mark">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M11 2L13.5 8H20L14.5 12L16.5 18.5L11 14.5L5.5 18.5L7.5 12L2 8H8.5L11 2Z" stroke="#8b5cf6" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M11 2L13.5 8H20L14.5 12L16.5 18.5L11 14.5L5.5 18.5L7.5 12L2 8H8.5L11 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           </svg>
         </div>
         <div>
@@ -203,6 +203,58 @@
             <div class="setting-row setting-row-stack">
               <div class="setting-label" id="labelPanelButtons">Кнопки в панели</div>
               <div class="actions-toggle-list" id="actionsToggleList"></div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title" id="titleGroupTheme">ТЕМА</div>
+            <div class="setting-row">
+              <div class="setting-label setting-label-stack">
+                <span id="labelThemePreset">Тема интерфейса</span>
+                <span class="setting-sub" id="labelThemeHint">Выберите готовую тему или настройте цвета вручную</span>
+              </div>
+              <select class="setting-select" id="settingThemePreset">
+                <option value="dark">Тёмная</option>
+                <option value="light">Светлая</option>
+                <option value="ocean">Контрастная</option>
+                <option value="custom">Своя</option>
+              </select>
+            </div>
+            <div class="setting-row setting-row-stack">
+              <div class="theme-color-grid" id="themeColorRows">
+                <label class="theme-color-item">
+                  <span id="labelThemeBg">Фон</span>
+                  <input type="color" id="themeBgInput" value="#0e0e16">
+                </label>
+                <label class="theme-color-item">
+                  <span id="labelThemeBg2">Панели</span>
+                  <input type="color" id="themeBg2Input" value="#14141f">
+                </label>
+                <label class="theme-color-item">
+                  <span id="labelThemeBg3">Карточки</span>
+                  <input type="color" id="themeBg3Input" value="#1c1c2e">
+                </label>
+                <label class="theme-color-item">
+                  <span id="labelThemeAccent">Акцент</span>
+                  <input type="color" id="themeAccentInput" value="#8b5cf6">
+                </label>
+                <label class="theme-color-item">
+                  <span id="labelThemeAccent2">Акцент 2</span>
+                  <input type="color" id="themeAccent2Input" value="#6d28d9">
+                </label>
+                <label class="theme-color-item">
+                  <span id="labelThemeText">Текст</span>
+                  <input type="color" id="themeTextInput" value="#e2e0ff">
+                </label>
+                <label class="theme-color-item">
+                  <span id="labelThemeTextMuted">Вторичный текст</span>
+                  <input type="color" id="themeTextMutedInput" value="#6b6b8a">
+                </label>
+                <label class="theme-color-item">
+                  <span id="labelThemeBorder">Границы</span>
+                  <input type="color" id="themeBorderInput" value="#2b2b3d">
+                </label>
+              </div>
             </div>
           </div>
 
