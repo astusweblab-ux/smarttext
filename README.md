@@ -17,6 +17,7 @@ Created by ASTUS LAB.
 - Custom prompt templates (create, run, delete)
 - Export history to `CSV` / `JSON`
 - Configurable visible action buttons
+- Theme presets and custom color customization (background, cards, buttons, text, borders)
 - Multilingual UI (Auto / RU / EN / ES / DE / FR / IT / PT / JA / UK / PL) for side panel, floating panel, and context menu
 - Voice input via microphone
 - File upload and parsing for `TXT` / `MD` / `DOCX` / `PDF`
@@ -51,6 +52,7 @@ Created by ASTUS LAB.
 - Dedicated `🌐 Языки` tab for translations
 - Voice dictation and local document import
 - Interface language selector in settings (`Auto`, `RU`, `EN`, `ES`, `DE`, `FR`, `IT`, `PT`, `JA`, `UK`, `PL`)
+- Theme switcher with presets (`Dark`, `Light`, `High contrast`, `Custom`) and manual color pickers
 
 ## Microphone access (`not-allowed`)
 
