@@ -1,6 +1,6 @@
 # SmartText
 
-Chrome Extension for local AI text assistance in editable fields (Gmail, Notion, Google Docs, Telegram Web, X/Twitter, etc.).
+Chrome Extension for local AI text assistance in editable fields directly in the browser.
 
 Created by ASTUS LAB.
 
@@ -19,7 +19,7 @@ Created by ASTUS LAB.
 - Configurable visible action buttons
 - Theme presets and custom color customization (background, cards, buttons, text, borders)
 - Multilingual UI (Auto / RU / EN / ES / DE / FR / IT / PT / JA / UK / PL) for side panel, floating panel, and context menu
-- Voice input via microphone
+- Voice input via microphone (if supported by browser)
 - File upload and parsing for `TXT` / `MD` / `DOCX` / `PDF`
 
 ## Load in Chrome
@@ -50,7 +50,7 @@ Created by ASTUS LAB.
 - Optional cross-device history sync (`Settings → Privacy`)
 - Action button selection for floating panel and quick actions
 - Dedicated `🌐 Языки` tab for translations
-- Voice dictation and local document import
+- Voice dictation (browser-dependent) and local document import
 - Interface language selector in settings (`Auto`, `RU`, `EN`, `ES`, `DE`, `FR`, `IT`, `PT`, `JA`, `UK`, `PL`)
 - Theme switcher with presets (`Dark`, `Light`, `High contrast`, `Custom`) and manual color pickers
 
