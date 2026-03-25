@@ -68,4 +68,4 @@ If you see `Ошибка микрофона: not-allowed` / `Microphone error: n
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Custom non-commercial license with no-derivatives policy — see [LICENSE](LICENSE).
